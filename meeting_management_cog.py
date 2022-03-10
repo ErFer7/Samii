@@ -239,7 +239,7 @@ class Meeting():
     topic_count: int
     current_topic_id_index: int
     current_topic: str
-    current_topic_time: int
+    cummulative_topic_time: int
     current_time: int
     topics: dict
     topic_has_changed: bool
@@ -253,7 +253,7 @@ class Meeting():
         self.current_topic_id_index = 0
         self.current_topic = ''
         self.current_time = 0
-        self.current_topic_time = 0
+        self.cummulative_topic_time = 0
         self.topics = {}
         self.topic_has_changed = False
         self.last_topic_id = 0
@@ -288,7 +288,7 @@ class Meeting():
         '''
 
         self.current_topic = self.topics[list(self.topics.keys())[self.current_topic_id_index]][0]
-        self.current_topic_time = self.topics[list(self.topics.keys())[self.current_topic_id_index]][1]
+        self.cummulative_topic_time = self.topics[list(self.topics.keys())[self.current_topic_id_index]][1]
 
     def increment_time(self, time: int):
         '''
@@ -298,14 +298,14 @@ class Meeting():
         self.topic_has_changed = False
         self.current_time += time
 
-        if self.current_topic_time <= self.current_time:
+        if self.cummulative_topic_time <= self.current_time:
 
             self.current_topic_id_index += 1
 
             if self.current_topic_id_index < self.topic_count:
 
                 self.current_topic = self.topics[list(self.topics.keys())[self.current_topic_id_index]][0]
-                self.current_topic_time = self.topics[list(self.topics.keys())[self.current_topic_id_index]][1]
+                self.cummulative_topic_time += self.topics[list(self.topics.keys())[self.current_topic_id_index]][1]
                 self.topic_has_changed = True
 
     def check_time_remaining(self):

@@ -20,6 +20,12 @@ Samii (Sorry am I interrupting?) is a bot that helps with the time management an
 
 ---
 
-## 0.2.1
+## v0.2.1
 
 * SFX file names fixed.
+
+---
+
+## v0.2.2
+
+* Topic duration time fixed.

@@ -5,6 +5,7 @@ Bot para Discord - 2022-03-09 - ErFer
 Projeto: Samii
 Bot: Samii
 '''
+
 import sys
 import asyncio
 
@@ -17,7 +18,7 @@ from event_cog import EventCog
 
 # Constantes
 NAME = "Samii"
-VERSION = "0.2.1"
+VERSION = "0.2.2"
 
 # Corrige o erro de saída temporáriamente.
 if sys.version_info[0] == 3 and sys.version_info[1] >= 8 and sys.platform.startswith('win'):
