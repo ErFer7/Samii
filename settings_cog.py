@@ -24,12 +24,12 @@ class SettingsCog(commands.Cog):
         print(f"[{datetime.now()}][Config]: Sistema de comandos de configurações inicializado")
 
     @commands.command(name="canal", aliases=("channel", "ch"))
-    async def channel_modifier(self, ctx):
+    async def channel_update(self, ctx):
         '''
         Define o canal principal de bots.
         '''
 
-        print(f"[{datetime.now()}][Config]: <canal> (Autor: {ctx.author.name})")
+        print(f"[{datetime.now()}][Config]: <channel_update> (Autor: {ctx.author.name})")
 
         if len(ctx.message.channel_mentions) == 1:
 
@@ -41,6 +41,39 @@ class SettingsCog(commands.Cog):
             self.bot.guild_dict[key].update_main_channel(self.bot)
 
             embed = discord.Embed(description=f"❱❱❱ **Canal redefinido para:** "
+                                  f"{self.bot.guild_dict[key].main_channel}**",
+                                  color=discord.Color.dark_purple())
+
+            await ctx.send(embed=embed)
+        else:
+
+            embed = discord.Embed(description="❌  **Comando inválido**\n\n"
+                                  "*Uso correto*\n~canal #canal",
+                                  color=discord.Color.red())
+            await ctx.send(embed=embed)
+
+    @commands.command(name="canal_voz", aliases=("voice_channel", "vch"))
+    async def voice_channel_update(self, ctx, *args):
+        '''
+        Define o canal de voz do bot.
+        '''
+
+        print(f"[{datetime.now()}][Config]: <voice_channel_update> (Autor: {ctx.author.name})")
+
+        if len(args) == 1:
+
+            key = str(ctx.guild.id)
+
+            for channel in ctx.guild.voice_channels:
+
+                if channel.name == args[0]:
+
+                    self.bot.guild_dict[key]. \
+                        settings["Voice channel ID"] = channel.id
+
+                    self.bot.guild_dict[key].update_voice_channel(self.bot)
+
+            embed = discord.Embed(description=f"❱❱❱ **Canal de voz redefinido para:** "
                                   f"{self.bot.guild_dict[key].main_channel}**",
                                   color=discord.Color.dark_purple())
 

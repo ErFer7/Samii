@@ -4,12 +4,16 @@
 Módulo de gerenciamento de reuniões.
 '''
 
+from os.path import join
 from asyncio import tasks
 from datetime import datetime
 
 import discord
 
 from discord.ext import commands, tasks
+
+# TODO: Adicionar a remoção de tópicos
+# TODO: Adcionar o comando de ecerramento da reunião
 
 
 class MeetingManagementCog(commands.Cog):
@@ -19,43 +23,106 @@ class MeetingManagementCog(commands.Cog):
     '''
 
     bot: None
-    active_meetings: list
+    active_meeting: None
+    active_text_channel: None
+    active_voice_channel: None
+    voice_client: None
+    low_time_notified: bool
 
     def __init__(self, bot):
 
         self.bot = bot
-        self.active_meetings = []
+        self.active_meeting = None
+        self.active_text_channel = None
+        self.active_voice_channel = None
+        self.voice_client = None
+        self.low_time_notified = False
 
-        self.run_meetings.start()
+        self.run_meeting.start()
 
         print(f"[{datetime.now()}][Meeting]: Sistema de gerenciamento de reuniões inicializado")
 
     @tasks.loop(seconds=1.0)
-    async def run_meetings(self):
+    async def run_meeting(self):
         '''
         Executa uma reunião.
         '''
 
-        for meeting_tuple in self.active_meetings:
+        if self.active_meeting is not None:
 
-            meeting_tuple[0].increment_time(1.0)
+            self.active_meeting.increment_time(1.0)
 
-            if meeting_tuple[0].topic_has_changed:
+            if self.active_meeting.topic_has_changed:
 
-                embed = discord.Embed(description=f"❱❱❱ **Tópico atual: {meeting_tuple[0].current_topic}**",
+                if self.voice_client is not None and self.voice_client.is_connected():
+
+                    if self.voice_client.is_playing():
+                        self.voice_client.stop()
+
+                    source = join("Audio", "Notificação de troca de tópico.wav")
+                    executable = join("System", "ffmpeg.exe")
+
+                    self.voice_client.play(discord.FFmpegPCMAudio(source=source,
+                                                                  executable=executable))
+
+                embed = discord.Embed(description=f"❱❱❱ **Tópico atual: {self.active_meeting.current_topic}**",
                                       color=discord.Color.dark_purple())
 
-                await meeting_tuple[1].send(embed=embed)
+                await self.active_text_channel.send(embed=embed)
 
-            if meeting_tuple[0].check_time_remaining() <= 0:
+            if self.active_meeting.check_time_remaining() <= 0:
 
-                meeting_tuple[0].reset()
-                self.active_meetings.remove(meeting_tuple)
+                self.active_meeting.reset()
 
-                embed = discord.Embed(description=f"❱❱❱ **A reunião \"{meeting_tuple[0].name}\" acabou**",
+                if self.voice_client is not None and self.voice_client.is_connected():
+
+                    await self.voice_client.disconnect()
+
+                    for member in self.active_voice_channel.members:
+                        await member.move_to(None)
+
+                    self.voice_client = None
+
+                embed = discord.Embed(description=f"❱❱❱ **A reunião \"{self.active_meeting.name}\" acabou**",
                                       color=discord.Color.dark_purple())
 
-                await meeting_tuple[1].send(embed=embed)
+                await self.active_text_channel.send(embed=embed)
+
+                self.active_meeting = None
+                self.active_text_channel = None
+                self.active_voice_channel = None
+                self.low_time_notified = 0
+            elif self.active_meeting.check_time_remaining() <= 10:
+
+                if self.voice_client is not None and self.voice_client.is_connected():
+
+                    if self.voice_client.is_playing():
+                        self.voice_client.stop()
+
+                    source = join("Audio", "Notificação final.ogg")
+                    executable = join("System", "ffmpeg.exe")
+
+                    self.voice_client.play(discord.FFmpegPCMAudio(source=source,
+                                                                  executable=executable))
+            elif self.active_meeting.check_time_remaining() <= 600 and not self.low_time_notified:
+
+                self.low_time_notified = True
+
+                if self.voice_client is not None and self.voice_client.is_connected():
+
+                    if self.voice_client.is_playing():
+                        self.voice_client.stop()
+
+                    source = join("Audio", "Notificação de tempo.wav")
+                    executable = join("System", "ffmpeg.exe")
+
+                    self.voice_client.play(discord.FFmpegPCMAudio(source=source,
+                                                                  executable=executable))
+
+                embed = discord.Embed(description="❱❱❱ **A reunião acaba em menos de 10 minutos!**",
+                                      color=discord.Color.dark_purple())
+
+                await self.active_text_channel.send(embed=embed)
 
     @commands.command(name="meeting", aliases=("reunião", "reuniao", "mt", "rn"))
     async def create_meeting(self, ctx, *args):
@@ -101,21 +168,37 @@ class MeetingManagementCog(commands.Cog):
 
                     meeting.start()
 
-                    channel = self.bot.guild_dict[str(ctx.guild.id)].main_channel
+                    text_channel = self.bot.guild_dict[str(ctx.guild.id)].main_channel
+                    voice_channel = self.bot.guild_dict[str(ctx.guild.id)].voice_channel
 
-                    if channel is None:
-                        channel = ctx.channel
+                    if text_channel is None:
+                        text_channel = ctx.channel
 
-                    self.active_meetings.append((meeting, self.bot.guild_dict[str(ctx.guild.id)].main_channel))
+                    self.active_meeting = meeting
+                    self.active_text_channel = text_channel
+                    self.active_voice_channel = voice_channel
+
+                    if voice_channel is not None and self.voice_client is None:
+                        self.voice_client = await voice_channel.connect()
+
+                        if self.voice_client is not None and self.voice_client.is_connected():
+
+                            if self.voice_client.is_playing():
+                                self.voice_client.stop()
+
+                            source = join("Audio", "Notificação de troca de tópico.wav")
+                            executable = join("System", "ffmpeg.exe")
+
+                            self.voice_client.play(discord.FFmpegPCMAudio(source=source,
+                                                                          executable=executable))
 
                     embed = discord.Embed(description=f"❱❱❱ **O primeiro tópico é: {meeting.current_topic}**",
                                           color=discord.Color.dark_purple())
 
-                    await channel.send(embed=embed)
+                    await text_channel.send(embed=embed)
 
-                    embed = discord.Embed(description=f"❱❱❱ **Reunião \"{args[0]}\" iniciada",
+                    embed = discord.Embed(description=f"❱❱❱ **Reunião \"{args[0]}\" iniciada**",
                                           color=discord.Color.dark_purple())
-
 
         await ctx.send(embed=embed)
 
@@ -237,6 +320,7 @@ class Meeting():
         Reseta a reunião.
         '''
 
+        self.current_topic_id_index = 0
         self.current_topic = ''
         self.current_time = 0
         self.topic_has_changed = False

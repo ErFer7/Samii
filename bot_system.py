@@ -94,7 +94,7 @@ class Guild():
     settings: dict
     guild: discord.guild
     main_channel: discord.TextChannel
-    main_voice_channel: discord.VoiceChannel
+    voice_channel: discord.VoiceChannel
     meetings: dict
 
     def __init__(self, id, bot):
@@ -111,11 +111,12 @@ class Guild():
 
             self.settings = {"Guild ID": self.id,
                              "Main channel ID": 0,
-                             "Main voice channel ID": 0,
+                             "Voice channel ID": 0,
                              "Meetings": {}}
 
         self.guild = bot.get_guild(self.settings["Guild ID"])
         self.main_channel = bot.get_channel(self.settings["Main channel ID"])
+        self.voice_channel = bot.get_channel(self.settings["Voice channel ID"])
 
         self.meetings = {}
 
@@ -150,7 +151,13 @@ class Guild():
 
         self.main_channel = bot.get_channel(self.settings["Main channel ID"])
 
-        if self.main_channel is None:
-            self.main_channel = self.guild.channels[0]
+        print(f"[{datetime.now()}][Sistema]: Canal principal do servidor {self.id} atualizado")
+
+    def update_voice_channel(self, bot):
+        '''
+        Atualiza o canal de voz principal.
+        '''
+
+        self.voice_channel = bot.get_channel(self.settings["Voice channel ID"])
 
         print(f"[{datetime.now()}][Sistema]: Canal principal do servidor {self.id} atualizado")
