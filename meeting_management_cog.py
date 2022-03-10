@@ -59,7 +59,7 @@ class MeetingManagementCog(commands.Cog):
                     if self.voice_client.is_playing():
                         self.voice_client.stop()
 
-                    source = join("Audio", "Notificação de troca de tópico.wav")
+                    source = join("Audio", "Topic Change Notification.wav")
                     executable = join("System", "ffmpeg.exe")
 
                     self.voice_client.play(discord.FFmpegPCMAudio(source=source,
@@ -99,7 +99,7 @@ class MeetingManagementCog(commands.Cog):
                     if self.voice_client.is_playing():
                         self.voice_client.stop()
 
-                    source = join("Audio", "Notificação final.ogg")
+                    source = join("Audio", "Final Notification.ogg")
                     executable = join("System", "ffmpeg.exe")
 
                     self.voice_client.play(discord.FFmpegPCMAudio(source=source,
@@ -113,7 +113,7 @@ class MeetingManagementCog(commands.Cog):
                     if self.voice_client.is_playing():
                         self.voice_client.stop()
 
-                    source = join("Audio", "Notificação de tempo.wav")
+                    source = join("Audio", "Time Notification.wav")
                     executable = join("System", "ffmpeg.exe")
 
                     self.voice_client.play(discord.FFmpegPCMAudio(source=source,
@@ -186,7 +186,7 @@ class MeetingManagementCog(commands.Cog):
                             if self.voice_client.is_playing():
                                 self.voice_client.stop()
 
-                            source = join("Audio", "Notificação de troca de tópico.wav")
+                            source = join("Audio", "Topic Change Notification.wav")
                             executable = join("System", "ffmpeg.exe")
 
                             self.voice_client.play(discord.FFmpegPCMAudio(source=source,
