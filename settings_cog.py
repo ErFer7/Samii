@@ -98,8 +98,7 @@ class SettingsCog(commands.Cog):
             await DiscordUtilities.send_message(ctx,
                                                 "Canal de voz redefinido",
                                                 f"Novo canal de voz: {self.bot.guild_dict[key].main_channel}",
-                                                "voice_channel",
-                                                True)
+                                                "voice_channel")
         else:
 
             await DiscordUtilities.send_message(ctx,

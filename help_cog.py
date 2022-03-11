@@ -43,6 +43,10 @@ class HelpCog(commands.Cog):
                         **++save**
                         *Salva as configurações atuais*
 
+
+                        *Gerais:*
+
+
                         **++help / ++ajuda / ++h / ++aj**
                         *Exibe os comandos*
 

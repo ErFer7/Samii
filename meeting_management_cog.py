@@ -75,10 +75,12 @@ class MeetingManagementCog(commands.Cog):
 
                 if self.voice_client is not None and self.voice_client.is_connected():
 
-                    await self.voice_client.disconnect()
-
                     for member in self.active_voice_channel.members:
-                        await member.move_to(None)
+
+                        if member != self.bot:
+                            await member.move_to(None)
+
+                    await self.voice_client.disconnect()
 
                     self.voice_client = None
 
