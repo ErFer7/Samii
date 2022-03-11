@@ -90,26 +90,26 @@ class Guild():
     Definição de um server.
     '''
 
-    id: int
+    identification: int
     settings: dict
     guild: discord.guild
     main_channel: discord.TextChannel
     voice_channel: discord.VoiceChannel
     meetings: dict
 
-    def __init__(self, id, bot):
+    def __init__(self, identification, bot):
 
-        self.id = id
+        self.identification = identification
 
-        if os.path.exists(os.path.join("Guilds", f"{self.id}.json")):
+        if os.path.exists(os.path.join("Guilds", f"{self.identification}.json")):
 
-            with open(os.path.join("Guilds", f"{self.id}.json"), 'r+', encoding="utf-8") as settings_file:
+            with open(os.path.join("Guilds", f"{self.identification}.json"), 'r+', encoding="utf-8") as settings_file:
                 settings_json = settings_file.read()
 
             self.settings = json.loads(settings_json)
         else:
 
-            self.settings = {"Guild ID": self.id,
+            self.settings = {"Guild ID": self.identification,
                              "Main channel ID": 0,
                              "Voice channel ID": 0,
                              "Meetings": {}}
@@ -127,22 +127,24 @@ class Guild():
             for topic in meeting_topics:
                 self.meetings[meeting_name].add_topic(topic[0], topic[1])
 
-        print(f"[{datetime.now()}][Sistema]: Servidor {self.id} inicializado")
+        print(f"[{datetime.now()}][Sistema]: Servidor {self.identification} inicializado")
 
     def write_settings(self):
         '''
         Escreve as configurações do servidor.
         '''
 
+        self.settings["Meetings"].clear()
+
         for meeting_name, meeting in self.meetings.items():
             self.settings["Meetings"][meeting_name] = list(meeting.topics.values())
 
-        with open(os.path.join("Guilds", f"{self.id}.json"), 'w+', encoding="utf-8") as settings_file:
+        with open(os.path.join("Guilds", f"{self.identification}.json"), 'w+', encoding="utf-8") as settings_file:
 
             settings_json = json.dumps(self.settings, indent=4)
             settings_file.write(settings_json)
 
-        print(f"[{datetime.now()}][Sistema]: Servidor {self.id} registrado")
+        print(f"[{datetime.now()}][Sistema]: Servidor {self.identification} registrado")
 
     def update_main_channel(self, bot):
         '''
@@ -151,7 +153,7 @@ class Guild():
 
         self.main_channel = bot.get_channel(self.settings["Main channel ID"])
 
-        print(f"[{datetime.now()}][Sistema]: Canal principal do servidor {self.id} atualizado")
+        print(f"[{datetime.now()}][Sistema]: Canal principal do servidor {self.identification} atualizado")
 
     def update_voice_channel(self, bot):
         '''
@@ -160,4 +162,4 @@ class Guild():
 
         self.voice_channel = bot.get_channel(self.settings["Voice channel ID"])
 
-        print(f"[{datetime.now()}][Sistema]: Canal principal do servidor {self.id} atualizado")
+        print(f"[{datetime.now()}][Sistema]: Canal principal do servidor {self.identification} atualizado")

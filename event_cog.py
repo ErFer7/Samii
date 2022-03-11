@@ -61,4 +61,4 @@ class EventCog(commands.Cog):
         '''
 
         print(f"[{datetime.now()}][Evento]: "
-              f"[{after.name}] ficou [{after.status}] no servidor [{after.guild.name}]")
+              f"[{after.name}] mudou de [{before.status}] para [{after.status}] no servidor [{after.guild.name}]")

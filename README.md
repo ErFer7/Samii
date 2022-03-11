@@ -29,3 +29,12 @@ Samii (Sorry am I interrupting?) is a bot that helps with the time management an
 ## v0.2.2
 
 * Topic duration time fixed.
+
+---
+
+## v0.3
+
+* Better and more informative messages.
+* Command to remove a meeting added.
+* Command to stop meeting added.
+* Command to remove a topic added.

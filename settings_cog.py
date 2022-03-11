@@ -6,9 +6,9 @@ Módulo para a cog dos comandos de configurações.
 
 from datetime import datetime
 
-import discord
-
 from discord.ext import commands
+
+from utilities import DiscordUtilities
 
 
 class SettingsCog(commands.Cog):
@@ -23,7 +23,7 @@ class SettingsCog(commands.Cog):
 
         print(f"[{datetime.now()}][Config]: Sistema de comandos de configurações inicializado")
 
-    @commands.command(name="canal", aliases=("channel", "ch"))
+    @commands.command(name="channel", aliases=("canal", "ch", "ca"))
     async def channel_update(self, ctx):
         '''
         Define o canal principal de bots.
@@ -31,28 +31,28 @@ class SettingsCog(commands.Cog):
 
         print(f"[{datetime.now()}][Config]: <channel_update> (Autor: {ctx.author.name})")
 
-        if len(ctx.message.channel_mentions) == 1:
+        if len(ctx.message.channel_mentions) != 1:
 
-            key = str(ctx.guild.id)
+            await DiscordUtilities.send_message(ctx,
+                                                "Comando inválido",
+                                                "Mencione um canal com #canal!"
+                                                "channel",
+                                                True)
+            return
 
-            self.bot.guild_dict[key]. \
-                settings["Main channel ID"] = ctx.message.channel_mentions[0].id
+        key = str(ctx.guild.id)
 
-            self.bot.guild_dict[key].update_main_channel(self.bot)
+        self.bot.guild_dict[key]. \
+            settings["Main channel ID"] = ctx.message.channel_mentions[0].id
 
-            embed = discord.Embed(description=f"❱❱❱ **Canal redefinido para:** "
-                                  f"{self.bot.guild_dict[key].main_channel}**",
-                                  color=discord.Color.dark_purple())
+        self.bot.guild_dict[key].update_main_channel(self.bot)
 
-            await ctx.send(embed=embed)
-        else:
+        await DiscordUtilities.send_message(ctx,
+                                            "Canal redefinido",
+                                            f"Novo canal de textos: {self.bot.guild_dict[key].main_channel}",
+                                            "channel")
 
-            embed = discord.Embed(description="❌  **Comando inválido**\n\n"
-                                  "*Uso correto*\n~canal #canal",
-                                  color=discord.Color.red())
-            await ctx.send(embed=embed)
-
-    @commands.command(name="canal_voz", aliases=("voice_channel", "vch"))
+    @commands.command(name="voice_channel", aliases=("canal_voz", "vch", "cav"))
     async def voice_channel_update(self, ctx, *args):
         '''
         Define o canal de voz do bot.
@@ -60,27 +60,50 @@ class SettingsCog(commands.Cog):
 
         print(f"[{datetime.now()}][Config]: <voice_channel_update> (Autor: {ctx.author.name})")
 
-        if len(args) == 1:
+        if args is None:
 
-            key = str(ctx.guild.id)
+            await DiscordUtilities.send_message(ctx,
+                                                "Comando inválido",
+                                                "Erro crítico nos argumentos!",
+                                                "voice_channel",
+                                                True)
+            return
 
-            for channel in ctx.guild.voice_channels:
+        if len(args) != 1:
 
-                if channel.name == args[0]:
+            await DiscordUtilities.send_message(ctx,
+                                                "Comando inválido",
+                                                "Especifique o nome do canal de voz!",
+                                                "voice_channel",
+                                                True)
+            return
 
-                    self.bot.guild_dict[key]. \
-                        settings["Voice channel ID"] = channel.id
+        key = str(ctx.guild.id)
 
-                    self.bot.guild_dict[key].update_voice_channel(self.bot)
+        channel_found = False
 
-            embed = discord.Embed(description=f"❱❱❱ **Canal de voz redefinido para:** "
-                                  f"{self.bot.guild_dict[key].main_channel}**",
-                                  color=discord.Color.dark_purple())
+        for channel in ctx.guild.voice_channels:
 
-            await ctx.send(embed=embed)
+            if channel.name == args[0]:
+
+                self.bot.guild_dict[key]. \
+                    settings["Voice channel ID"] = channel.id
+
+                self.bot.guild_dict[key].update_voice_channel(self.bot)
+
+                channel_found = True
+
+        if channel_found:
+
+            await DiscordUtilities.send_message(ctx,
+                                                "Canal de voz redefinido",
+                                                f"Novo canal de voz: {self.bot.guild_dict[key].main_channel}",
+                                                "voice_channel",
+                                                True)
         else:
 
-            embed = discord.Embed(description="❌  **Comando inválido**\n\n"
-                                  "*Uso correto*\n~canal #canal",
-                                  color=discord.Color.red())
-            await ctx.send(embed=embed)
+            await DiscordUtilities.send_message(ctx,
+                                                "Comando inválido",
+                                                "Canal não encontrado!",
+                                                "voice_channel",
+                                                True)

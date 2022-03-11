@@ -6,9 +6,9 @@ Módulo para a cog dos comandos de administrador.
 
 from datetime import datetime
 
-import discord
-
 from discord.ext import commands
+
+from utilities import DiscordUtilities
 
 
 class AdminCog(commands.Cog):
@@ -33,13 +33,20 @@ class AdminCog(commands.Cog):
 
         print(f"[{datetime.now()}][Admin]: <off> (Autor: {ctx.author.name})")
 
+        if ctx.author.id not in self.bot.admins_id:
+
+            await DiscordUtilities.send_message(ctx,
+                                                "Comando inválido",
+                                                "Você não tem permissão para usar este comando",
+                                                "shutdown",
+                                                True)
+            return
+
+
         if ctx.author.id in self.bot.admins_id:
 
             # Envia uma mensagem de saída
-            embed = discord.Embed(description="❱❱❱ **Encerrando**",
-                                  color=discord.Color.dark_purple())
-
-            await ctx.send(embed=embed)
+            await DiscordUtilities.send_message(ctx, "Encerrando", "Tchau!", "shutdown")
 
             # Salva todos os servidores
             print(f"[{datetime.now()}][Admin]: Registrando as definições dos servidores")
@@ -50,13 +57,6 @@ class AdminCog(commands.Cog):
             # Encerra o bot
             print(f"[{datetime.now()}][Admin]: Encerrando")
             await self.bot.close()
-        else:
-
-            embed = discord.Embed(description="❌  **Comando inválido**\n\n"
-                                  "*Você não tem permissão para usar este comando*",
-                                  color=discord.Color.red())
-
-            await ctx.send(embed=embed)
 
     @commands.command(name="info")
     async def info(self, ctx):
@@ -66,20 +66,17 @@ class AdminCog(commands.Cog):
 
         print(f"[{datetime.now()}][Admin]: <info> (Autor: {ctx.author.name})")
 
-        header = f"**{self.bot.name} {self.bot.version}** - Criado em 09/03/2022"
-        http_loop = f"**Loop HTTP:** {self.bot.loop}"
-        latency = f"**Latência interna:** {self.bot.latency}"
-        guild_count = f"**Servidores conectados:** {len(self.bot.guilds)}"
-        voice_clients = f"**Instâncias de voz:** {self.bot.voice_clients}"
+        description = f'''⬩ **{self.bot.name} {self.bot.version}** - Criado em 09/03/2022
 
-        embed = discord.Embed(description="❱❱❱ **Informações**\n\n"
-                              f"⬩ {header}\n\n"
-                              f"⬩ {http_loop}\n\n"
-                              f"⬩ {latency}\n\n"
-                              f"⬩ {guild_count}\n\n"
-                              f"⬩ {voice_clients}",
-                              color=discord.Color.dark_purple())
-        await ctx.send(embed=embed)
+                          ⬩ **Loop HTTP:** {self.bot.loop}
+
+                          ⬩ **Latência interna:** {self.bot.latency}
+
+                          ⬩ **Servidores conectados:** {len(self.bot.guilds)}
+
+                          ⬩ **Instâncias de voz:** {self.bot.voice_clients}'''
+
+        await DiscordUtilities.send_message(ctx, "Informações", description, "info")
 
     @commands.command(name="save")
     async def save(self, ctx):
@@ -91,7 +88,4 @@ class AdminCog(commands.Cog):
 
         self.bot.guild_dict[str(ctx.guild.id)].write_settings()
 
-        embed = discord.Embed(description="❱❱❱ **Salvando...**",
-                              color=discord.Color.dark_purple())
-
-        await ctx.send(embed=embed)
+        await DiscordUtilities.send_message(ctx, "Salvando", "Os dados salvos são únicos para cada servidor", "save")
