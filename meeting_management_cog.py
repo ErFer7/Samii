@@ -7,6 +7,7 @@ Módulo de gerenciamento de reuniões.
 from os.path import join
 from asyncio import tasks
 from datetime import datetime, timedelta
+from time import time
 
 import discord
 
@@ -41,35 +42,49 @@ class MeetingManagementCog(commands.Cog):
 
         print(f"[{datetime.now()}][Meeting]: Sistema de gerenciamento de reuniões inicializado")
 
+    def play_audio(self, source: str):
+        '''
+        Toca um áudio.
+        '''
+
+        if self.voice_client is not None and self.voice_client.is_connected():
+
+            if self.voice_client.is_playing():
+                self.voice_client.stop()
+
+            executable = join("System", "ffmpeg.exe")
+
+            self.voice_client.play(discord.FFmpegPCMAudio(source=source,
+                                                            executable=executable))
+
     @tasks.loop(seconds=1.0)
     async def run_meeting(self):
         '''
         Executa uma reunião.
         '''
 
+        remaining_time = -1
+
         if self.active_meeting is not None:
 
-            self.active_meeting.increment_time(1.0)
+            self.active_meeting.update_time()
+
+            if self.active_meeting.time_remaining() // 60 != remaining_time:
+                remaining_time = self.active_meeting.time_remaining() // 60
+
+                await self.bot.change_presence(activity=discord.Game(name=f"{self.active_meeting.name}: "
+                                                                          f"{remaining_time:.0f} min"))
 
             if self.active_meeting.topic_has_changed:
 
-                if self.voice_client is not None and self.voice_client.is_connected():
-
-                    if self.voice_client.is_playing():
-                        self.voice_client.stop()
-
-                    source = join("Audio", "Topic Change Notification.wav")
-                    executable = join("System", "ffmpeg.exe")
-
-                    self.voice_client.play(discord.FFmpegPCMAudio(source=source,
-                                                                  executable=executable))
+                self.play_audio(join("Audio", "Topic Change Notification.wav"))
 
                 await DiscordUtilities.send_message(self.active_text_channel,
                                                     "Tópico atual",
                                                     self.active_meeting.current_topic,
                                                     self.active_meeting.name)
 
-            if self.active_meeting.check_time_remaining() <= 0:
+            if self.active_meeting.time_remaining() <= 0.0:
 
                 self.active_meeting.reset()
 
@@ -93,32 +108,16 @@ class MeetingManagementCog(commands.Cog):
                 self.active_text_channel = None
                 self.active_voice_channel = None
                 self.low_time_notified = 0
-            elif self.active_meeting.check_time_remaining() <= 10:
 
-                if self.voice_client is not None and self.voice_client.is_connected():
+                await self.bot.change_presence(activity=discord.Game(name=self.bot.activity_str))
+            elif self.active_meeting.time_remaining() <= 10.0:
 
-                    if self.voice_client.is_playing():
-                        self.voice_client.stop()
-
-                    source = join("Audio", "Final Notification.ogg")
-                    executable = join("System", "ffmpeg.exe")
-
-                    self.voice_client.play(discord.FFmpegPCMAudio(source=source,
-                                                                  executable=executable))
-            elif self.active_meeting.check_time_remaining() <= 600 and not self.low_time_notified:
+                self.play_audio(join("Audio", "Final Notification.ogg"))
+            elif self.active_meeting.time_remaining() <= 600.0 and not self.low_time_notified:
 
                 self.low_time_notified = True
 
-                if self.voice_client is not None and self.voice_client.is_connected():
-
-                    if self.voice_client.is_playing():
-                        self.voice_client.stop()
-
-                    source = join("Audio", "Time Notification.wav")
-                    executable = join("System", "ffmpeg.exe")
-
-                    self.voice_client.play(discord.FFmpegPCMAudio(source=source,
-                                                                  executable=executable))
+                self.play_audio(join("Audio", "Time Notification.wav"))
 
                 await DiscordUtilities.send_message(self.active_text_channel,
                                                     "Notificação de tempo",
@@ -132,15 +131,6 @@ class MeetingManagementCog(commands.Cog):
         '''
 
         print(f"[{datetime.now()}][Admin]: <create_meeting> (Autor: {ctx.author.name})")
-
-        if args is None:
-
-            await DiscordUtilities.send_message(ctx,
-                                                "Comando inválido",
-                                                "Erro crítico nos argumentos!",
-                                                "meeting",
-                                                True)
-            return
 
         if len(args) != 1:
 
@@ -175,15 +165,6 @@ class MeetingManagementCog(commands.Cog):
 
         print(f"[{datetime.now()}][Admin]: <remove_meeting> (Autor: {ctx.author.name})")
 
-        if args is None:
-
-            await DiscordUtilities.send_message(ctx,
-                                                "Comando inválido",
-                                                "Erro crítico nos argumentos!",
-                                                "remove meeting",
-                                                True)
-            return
-
         if len(args) != 1:
 
             await DiscordUtilities.send_message(ctx,
@@ -216,15 +197,6 @@ class MeetingManagementCog(commands.Cog):
         '''
 
         print(f"[{datetime.now()}][Admin]: <start_meeting> (Autor: {ctx.author.name})")
-
-        if args is None:
-
-            await DiscordUtilities.send_message(ctx,
-                                                "Comando inválido",
-                                                "Erro crítico nos argumentos!",
-                                                "start",
-                                                True)
-            return
 
         if len(args) != 1:
 
@@ -343,15 +315,6 @@ class MeetingManagementCog(commands.Cog):
 
         print(f"[{datetime.now()}][Admin]: <add_topic> (Autor: {ctx.author.name})")
 
-        if args is None:
-
-            await DiscordUtilities.send_message(ctx,
-                                                "Comando inválido",
-                                                "Erro crítico nos argumentos!",
-                                                "add",
-                                                True)
-            return
-
         if len(args) != 3:
 
             await DiscordUtilities.send_message(ctx,
@@ -407,15 +370,6 @@ class MeetingManagementCog(commands.Cog):
 
         print(f"[{datetime.now()}][Admin]: <remove_topic> (Autor: {ctx.author.name})")
 
-        if args is None:
-
-            await DiscordUtilities.send_message(ctx,
-                                                "Comando inválido",
-                                                "Erro crítico nos argumentos!",
-                                                "remove",
-                                                True)
-            return
-
         if len(args) != 2:
 
             await DiscordUtilities.send_message(ctx,
@@ -463,10 +417,11 @@ class Meeting():
     current_topic_id_index: int
     current_topic: str
     cummulative_topic_time: int
-    current_time: int
+    time_counter: int
     topics: dict
     topic_has_changed: bool
     last_topic_id: int
+    last_time: float
 
     def __init__(self, name: str):
 
@@ -475,20 +430,21 @@ class Meeting():
         self.topic_count = 0
         self.current_topic_id_index = 0
         self.current_topic = ''
-        self.current_time = 0
+        self.time_counter = 0
         self.cummulative_topic_time = 0
         self.topics = {}
         self.topic_has_changed = False
         self.last_topic_id = 0
+        self.last_time = None
 
-    def add_topic(self, topic: str, time: int):
+    def add_topic(self, topic: str, duration: int):
         '''
         Adiciona um novo tópico.
         '''
 
-        self.topics[self.last_topic_id] = (topic, time)
+        self.topics[self.last_topic_id] = (topic, duration)
         self.topic_count += 1
-        self.total_time += time
+        self.total_time += duration
         self.last_topic_id += 1
 
     def has_topic(self, topic: str):
@@ -524,16 +480,21 @@ class Meeting():
 
         self.current_topic = self.topics[list(self.topics.keys())[self.current_topic_id_index]][0]
         self.cummulative_topic_time = self.topics[list(self.topics.keys())[self.current_topic_id_index]][1]
+        self.last_time = time()
 
-    def increment_time(self, time: int):
+    def update_time(self):
         '''
         Passa o tempo.
         '''
 
         self.topic_has_changed = False
-        self.current_time += time
 
-        if self.cummulative_topic_time <= self.current_time:
+        current_time = time()
+
+        self.time_counter += current_time - self.last_time
+        self.last_time = current_time
+
+        if self.cummulative_topic_time <= self.time_counter:
 
             self.current_topic_id_index += 1
 
@@ -543,12 +504,12 @@ class Meeting():
                 self.cummulative_topic_time += self.topics[list(self.topics.keys())[self.current_topic_id_index]][1]
                 self.topic_has_changed = True
 
-    def check_time_remaining(self):
+    def time_remaining(self):
         '''
         Verifica o tempo restante.
         '''
 
-        return self.total_time - self.current_time
+        return self.total_time - self.time_counter
 
     def reset(self):
         '''
@@ -557,5 +518,5 @@ class Meeting():
 
         self.current_topic_id_index = 0
         self.current_topic = ''
-        self.current_time = 0
+        self.time_counter = 0
         self.topic_has_changed = False

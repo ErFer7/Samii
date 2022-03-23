@@ -64,7 +64,8 @@ class CustomBot(commands.Bot):
             self.token = internal_settings["TOKEN"]
             self.activity_str = choice(internal_settings["Activities"])
         else:
-            print(f"[{datetime.now()}][Sistema]: Falha no carregamento das definições!")
+            print(f"[{datetime.now()}][Sistema]: Falha no carregamento das definições! "
+                   "O arquivo \"internal_settings.json\" deveria estar na pasta System")
 
     async def setup(self):
         '''

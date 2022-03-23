@@ -66,7 +66,7 @@ class AdminCog(commands.Cog):
 
         print(f"[{datetime.now()}][Admin]: <info> (Autor: {ctx.author.name})")
 
-        description = f'''⬩ **{self.bot.name} {self.bot.version}** - Criado em 09/03/2022
+        description = f'''⬩ **{self.bot.name} {self.bot.version}** - Criada em 09/03/2022
 
                           ⬩ **Loop HTTP:** {self.bot.loop}
 
