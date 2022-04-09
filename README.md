@@ -50,3 +50,10 @@ Samii (Sorry am I interrupting?) is a bot that helps with the time management an
 ## v0.4
 
 * Now the activity will show the meeting remaining time.
+
+---
+
+## v0.5
+
+* Source files moved to a source folder.
+* Admin messages are now in english.

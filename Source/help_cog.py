@@ -8,28 +8,28 @@ from datetime import datetime
 
 from discord.ext import commands
 
-from utilities import DiscordUtilities
+from Source.utilities import DiscordUtilities
 
 
 class HelpCog(commands.Cog):
 
     '''
-    Cog dos comandos de ajuda
+    Cog dos comandos de ajuda.
     '''
 
     def __init__(self, bot):
 
         self.bot = bot
 
-        print(f"[{datetime.now()}][Ajuda]: Sistema de comandos de ajuda inicializado")
+        print(f"[{datetime.now()}][Help]: Help system initialized")
 
     @commands.command(name="help", aliases=("ajuda", "h", "aj"))
     async def custom_help(self, ctx):
         '''
-        Envia uma mensagem de ajuda
+        Envia uma mensagem de ajuda.
         '''
 
-        print(f"[{datetime.now()}][Ajuda]: <ajuda> (Autor: {ctx.author.name})")
+        print(f"[{datetime.now()}][Help]: <help> (Author: {ctx.author.name})")
 
         help_text = '''*Administrativos:*
 

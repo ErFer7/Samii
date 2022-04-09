@@ -13,7 +13,7 @@ import discord
 
 from discord.ext import commands, tasks
 
-from utilities import DiscordUtilities
+from Source.utilities import DiscordUtilities
 
 
 class MeetingManagementCog(commands.Cog):
@@ -40,7 +40,7 @@ class MeetingManagementCog(commands.Cog):
 
         self.run_meeting.start()
 
-        print(f"[{datetime.now()}][Meeting]: Sistema de gerenciamento de reuniões inicializado")
+        print(f"[{datetime.now()}][Meeting]: Meeting system initialized")
 
     def play_audio(self, source: str):
         '''
@@ -130,7 +130,7 @@ class MeetingManagementCog(commands.Cog):
         Adiciona uma reunião.
         '''
 
-        print(f"[{datetime.now()}][Admin]: <create_meeting> (Autor: {ctx.author.name})")
+        print(f"[{datetime.now()}][Meeting]: <create_meeting> (Author: {ctx.author.name})")
 
         if len(args) != 1:
 
@@ -163,7 +163,7 @@ class MeetingManagementCog(commands.Cog):
         Remove uma reunião.
         '''
 
-        print(f"[{datetime.now()}][Admin]: <remove_meeting> (Autor: {ctx.author.name})")
+        print(f"[{datetime.now()}][Meeting]: <remove_meeting> (Author: {ctx.author.name})")
 
         if len(args) != 1:
 
@@ -196,7 +196,7 @@ class MeetingManagementCog(commands.Cog):
         Inicia uma reunião.
         '''
 
-        print(f"[{datetime.now()}][Admin]: <start_meeting> (Autor: {ctx.author.name})")
+        print(f"[{datetime.now()}][Meeting]: <start_meeting> (Author: {ctx.author.name})")
 
         if len(args) != 1:
 
@@ -279,7 +279,7 @@ class MeetingManagementCog(commands.Cog):
         Para uma reunião.
         '''
 
-        print(f"[{datetime.now()}][Admin]: <stop_meeting> (Autor: {ctx.author.name})")
+        print(f"[{datetime.now()}][Meeting]: <stop_meeting> (Author: {ctx.author.name})")
 
         if self.active_meeting is None:
 
@@ -313,7 +313,7 @@ class MeetingManagementCog(commands.Cog):
         Adiciona um tópico à uma reunião.
         '''
 
-        print(f"[{datetime.now()}][Admin]: <add_topic> (Autor: {ctx.author.name})")
+        print(f"[{datetime.now()}][Meeting]: <add_topic> (Author: {ctx.author.name})")
 
         if len(args) != 3:
 
@@ -368,7 +368,7 @@ class MeetingManagementCog(commands.Cog):
         Remove um tópico.
         '''
 
-        print(f"[{datetime.now()}][Admin]: <remove_topic> (Autor: {ctx.author.name})")
+        print(f"[{datetime.now()}][Meeting]: <remove_topic> (Author: {ctx.author.name})")
 
         if len(args) != 2:
 

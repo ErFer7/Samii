@@ -8,7 +8,7 @@ from datetime import datetime
 
 from discord.ext import commands
 
-from utilities import DiscordUtilities
+from Source.utilities import DiscordUtilities
 
 
 class SettingsCog(commands.Cog):
@@ -21,7 +21,7 @@ class SettingsCog(commands.Cog):
 
         self.bot = bot
 
-        print(f"[{datetime.now()}][Config]: Sistema de comandos de configurações inicializado")
+        print(f"[{datetime.now()}][Settings]: Settings system initialized")
 
     @commands.command(name="channel", aliases=("canal", "ch", "ca"))
     async def channel_update(self, ctx):
@@ -29,7 +29,7 @@ class SettingsCog(commands.Cog):
         Define o canal principal de bots.
         '''
 
-        print(f"[{datetime.now()}][Config]: <channel_update> (Autor: {ctx.author.name})")
+        print(f"[{datetime.now()}][Settings]: <channel_update> (Author: {ctx.author.name})")
 
         if len(ctx.message.channel_mentions) != 1:
 
@@ -58,7 +58,7 @@ class SettingsCog(commands.Cog):
         Define o canal de voz do bot.
         '''
 
-        print(f"[{datetime.now()}][Config]: <voice_channel_update> (Autor: {ctx.author.name})")
+        print(f"[{datetime.now()}][Settings]: <voice_channel_update> (Author: {ctx.author.name})")
 
         if args is None:
 

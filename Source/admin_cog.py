@@ -8,7 +8,7 @@ from datetime import datetime
 
 from discord.ext import commands
 
-from utilities import DiscordUtilities
+from Source.utilities import DiscordUtilities
 
 
 class AdminCog(commands.Cog):
@@ -23,15 +23,15 @@ class AdminCog(commands.Cog):
 
         self.bot = bot
 
-        print(f"[{datetime.now()}][Admin]: Sistema de comandos do administrador inicializado")
+        print(f"[{datetime.now()}][Admin]: Administrator command system initialized")
 
     @commands.command(name="off")
     async def shutdown(self, ctx):
         '''
-        Desliga o bot
+        Desliga o bot.
         '''
 
-        print(f"[{datetime.now()}][Admin]: <off> (Autor: {ctx.author.name})")
+        print(f"[{datetime.now()}][Admin]: <off> (Author: {ctx.author.name})")
 
         if ctx.author.id not in self.bot.admins_id:
 
@@ -49,22 +49,22 @@ class AdminCog(commands.Cog):
             await DiscordUtilities.send_message(ctx, "Encerrando", "Tchau!", "shutdown")
 
             # Salva todos os servidores
-            print(f"[{datetime.now()}][Admin]: Registrando as definições dos servidores")
+            print(f"[{datetime.now()}][Admin]: Saving definitions for every guild")
 
             for key in self.bot.guild_dict:
                 self.bot.guild_dict[key].write_settings()
 
             # Encerra o bot
-            print(f"[{datetime.now()}][Admin]: Encerrando")
+            print(f"[{datetime.now()}][Admin]: Exiting")
             await self.bot.close()
 
     @commands.command(name="info")
     async def info(self, ctx):
         '''
-        Exibe informações
+        Exibe informações.
         '''
 
-        print(f"[{datetime.now()}][Admin]: <info> (Autor: {ctx.author.name})")
+        print(f"[{datetime.now()}][Admin]: <info> (Author: {ctx.author.name})")
 
         description = f'''⬩ **{self.bot.name} {self.bot.version}** - Criada em 09/03/2022
 
@@ -81,10 +81,10 @@ class AdminCog(commands.Cog):
     @commands.command(name="save")
     async def save(self, ctx):
         '''
-        Salva os servidores
+        Salva os servidores.
         '''
 
-        print(f"[{datetime.now()}][Admin]: <save> (Autor: {ctx.author.name})")
+        print(f"[{datetime.now()}][Admin]: <save> (Author: {ctx.author.name})")
 
         self.bot.guild_dict[str(ctx.guild.id)].write_settings()
 

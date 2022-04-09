@@ -19,7 +19,7 @@ class EventCog(commands.Cog):
 
         self.bot = bot
 
-        print(f"[{datetime.now()}][Evento]: Sistema de eventos inicializado")
+        print(f"[{datetime.now()}][Event]: Event system initialized")
 
     @commands.Cog.listener()
     async def on_message(self, message):
@@ -27,8 +27,8 @@ class EventCog(commands.Cog):
         Evento de mensagens.
         '''
 
-        print(f"[{datetime.now()}][Evento]: "
-              f"[{message.author.name}] enviou uma mensagem no canal [{message.channel}]")
+        print(f"[{datetime.now()}][Event]: "
+              f"A message was sent in the channel [{message.channel}] by [{message.author.name}]")
 
     @commands.Cog.listener()
     async def on_connect(self):
@@ -36,7 +36,7 @@ class EventCog(commands.Cog):
         Evento de conexão.
         '''
 
-        print(f"[{datetime.now()}][Evento]: Conectado")
+        print(f"[{datetime.now()}][Event]: Connected")
 
     @commands.Cog.listener()
     async def on_disconnect(self):
@@ -44,7 +44,7 @@ class EventCog(commands.Cog):
         Evento de desconexão.
         '''
 
-        print(f"[{datetime.now()}][Evento]: Desconectado")
+        print(f"[{datetime.now()}][Event]: Disconnected")
 
     @commands.Cog.listener()
     async def on_resumed(self):
@@ -52,7 +52,7 @@ class EventCog(commands.Cog):
         Evento de retorno.
         '''
 
-        print(f"[{datetime.now()}][Evento]: Resumido")
+        print(f"[{datetime.now()}][Event]: Resumed")
 
     @commands.Cog.listener()
     async def on_member_update(self, before, after):
@@ -60,5 +60,5 @@ class EventCog(commands.Cog):
         Evento de atualização de usuário.
         '''
 
-        print(f"[{datetime.now()}][Evento]: "
-              f"[{after.name}] mudou de [{before.status}] para [{after.status}] no servidor [{after.guild.name}]")
+        print(f"[{datetime.now()}][Event]: "
+              f"[{after.name}] changed from [{before.status}] to [{after.status}] in the guild [{after.guild.name}]")

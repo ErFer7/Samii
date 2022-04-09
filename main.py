@@ -9,16 +9,16 @@ Bot: Samii
 import sys
 import asyncio
 
-from bot_system import CustomBot
-from admin_cog import AdminCog
-from help_cog import HelpCog
-from meeting_management_cog import MeetingManagementCog
-from settings_cog import SettingsCog
-from event_cog import EventCog
+from Source.bot_system import CustomBot
+from Source.admin_cog import AdminCog
+from Source.help_cog import HelpCog
+from Source.meeting_management_cog import MeetingManagementCog
+from Source.settings_cog import SettingsCog
+from Source.event_cog import EventCog
 
 # Constantes
 NAME = "Samii"
-VERSION = "0.4"
+VERSION = "0.5"
 
 # Corrige o erro de saída temporáriamente.
 if sys.version_info[0] == 3 and sys.version_info[1] >= 8 and sys.platform.startswith('win'):
