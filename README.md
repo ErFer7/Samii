@@ -57,3 +57,9 @@ Samii (Sorry am I interrupting?) is a bot that helps with the time management an
 
 * Source files moved to a source folder.
 * Admin messages are now in english.
+
+---
+
+## v0.6
+
+* CustomBot class refactored
