@@ -7,6 +7,7 @@ Módulo para a cog dos comandos de administrador.
 from datetime import datetime
 
 from discord.ext import commands
+from Source.bot_system import CustomBot
 
 from Source.utilities import DiscordUtilities
 
@@ -17,23 +18,26 @@ class AdminCog(commands.Cog):
     Cog dos comandos de adminstrador.
     '''
 
-    bot: None
+    # Atributos ---------------------------------------------------------------
+    bot: CustomBot
 
-    def __init__(self, bot):
+    # Construtor --------------------------------------------------------------
+    def __init__(self, bot: CustomBot):
 
         self.bot = bot
 
         print(f"[{datetime.now()}][Admin]: Administrator command system initialized")
 
+    # Comandos ----------------------------------------------------------------
     @commands.command(name="off")
-    async def shutdown(self, ctx):
+    async def shutdown(self, ctx) -> None:
         '''
         Desliga o bot.
         '''
 
         print(f"[{datetime.now()}][Admin]: <off> (Author: {ctx.author.name})")
 
-        if ctx.author.id not in self.bot.admins_id:
+        if not self.bot.is_admin(ctx.author.id):
 
             await DiscordUtilities.send_message(ctx,
                                                 "Comando inválido",
@@ -42,50 +46,57 @@ class AdminCog(commands.Cog):
                                                 True)
             return
 
+        # Envia uma mensagem de saída
+        await DiscordUtilities.send_message(ctx, "Encerrando", "Tchau!", "shutdown")
 
-        if ctx.author.id in self.bot.admins_id:
+        # Salva todos os servidores
+        print(f"[{datetime.now()}][Admin]: Saving definitions for every guild")
 
-            # Envia uma mensagem de saída
-            await DiscordUtilities.send_message(ctx, "Encerrando", "Tchau!", "shutdown")
+        self.bot.write_settings_for_all()
 
-            # Salva todos os servidores
-            print(f"[{datetime.now()}][Admin]: Saving definitions for every guild")
-
-            for key in self.bot.guild_dict:
-                self.bot.guild_dict[key].write_settings()
-
-            # Encerra o bot
-            print(f"[{datetime.now()}][Admin]: Exiting")
-            await self.bot.close()
+        # Encerra o bot
+        print(f"[{datetime.now()}][Admin]: Exiting")
+        await self.bot.close()
 
     @commands.command(name="info")
-    async def info(self, ctx):
+    async def info(self, ctx) -> None:
         '''
         Exibe informações.
         '''
 
         print(f"[{datetime.now()}][Admin]: <info> (Author: {ctx.author.name})")
 
-        description = f'''⬩ **{self.bot.name} {self.bot.version}** - Criada em 09/03/2022
+        bot_info = self.bot.get_info()
 
-                          ⬩ **Loop HTTP:** {self.bot.loop}
+        description = f'''⬩ **{bot_info["Name"]} {bot_info["Version"]}** - Criada em 2022-03-09
 
-                          ⬩ **Latência interna:** {self.bot.latency}
+                          ⬩ **Loop HTTP:** {bot_info["HTTP loop"]}
 
-                          ⬩ **Servidores conectados:** {len(self.bot.guilds)}
+                          ⬩ **Latência interna:** {bot_info["Latency"]} ms
 
-                          ⬩ **Instâncias de voz:** {self.bot.voice_clients}'''
+                          ⬩ **Servidores conectados:** {bot_info["Guild count"]}
+
+                          ⬩ **Instâncias de voz:** {bot_info["Voice clients"]}'''
 
         await DiscordUtilities.send_message(ctx, "Informações", description, "info")
 
     @commands.command(name="save")
-    async def save(self, ctx):
+    async def save(self, ctx) -> None:
         '''
         Salva os servidores.
         '''
 
         print(f"[{datetime.now()}][Admin]: <save> (Author: {ctx.author.name})")
 
-        self.bot.guild_dict[str(ctx.guild.id)].write_settings()
+        if not self.bot.is_admin(ctx.author.id):
+
+            await DiscordUtilities.send_message(ctx,
+                                                "Comando inválido",
+                                                "Você não tem permissão para usar este comando",
+                                                "shutdown",
+                                                True)
+            return
+
+        self.bot.write_settings_for_guild(ctx.guild.id)
 
         await DiscordUtilities.send_message(ctx, "Salvando", "Os dados salvos são únicos para cada servidor", "save")

@@ -18,7 +18,7 @@ from Source.event_cog import EventCog
 
 # Constantes
 NAME = "Samii"
-VERSION = "0.5"
+VERSION = "0.6"
 
 # Corrige o erro de saída temporáriamente.
 if sys.version_info[0] == 3 and sys.version_info[1] >= 8 and sys.platform.startswith('win'):
@@ -35,4 +35,4 @@ bot.add_cog(SettingsCog(bot))
 bot.add_cog(EventCog(bot))
 bot.add_cog(MeetingManagementCog(bot))
 bot.loop.create_task(bot.setup())
-bot.run(bot.token)
+bot.run()

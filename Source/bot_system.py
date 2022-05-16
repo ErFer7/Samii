@@ -7,9 +7,11 @@ Módulo que contém a lógica interna do bot.
 import os
 import json
 
+from os.path import exists, join
 from time import time_ns
 from random import choice, seed
 from datetime import datetime
+from typing import Callable
 
 import discord
 
@@ -24,35 +26,37 @@ class CustomBot(commands.Bot):
     Bot customizado.
     '''
 
-    name: str
-    version: str
-    guild_dict: dict
-    admins_id: int
-    token: str
-    activity_str: str
+    # Atributos privados ------------------------------------------------------
+    __name: str
+    __version: str
+    __guild_dict: dict
+    __admins_id: int
+    __token: str
+    __activity_str: str
 
-    def __init__(self, command_prefix, help_command, name, version):
+    # Construtor --------------------------------------------------------------
+    def __init__(self, command_prefix: str, help_command: Callable, name: str, version: str) -> None:
 
         super().__init__(command_prefix=command_prefix,
                          help_command=help_command)
 
-        self.name = name
-        self.version = version
-        self.guild_dict = {}
-        self.admins_id = []
-        self.token = ""
-        self.activity_str = ""
+        self.__name = name
+        self.__version = version
+        self.__guild_dict = {}
+        self.__admins_id = []
+        self.__token = ""
+        self.__activity_str = ""
 
-        print(f"[{datetime.now()}][System]: Initializing {self.name} {self.version}")
+        print(f"[{datetime.now()}][System]: Initializing {self.__name} {self.__version}")
         print(f"[{datetime.now()}][System]: Initializing the RNG")
 
         seed(time_ns())
 
         print(f"[{datetime.now()}][System]: Loading internal definitions")
 
-        if os.path.exists(os.path.join("System", "internal_settings.json")):
+        if exists(join("System", "internal_settings.json")):
 
-            with open(os.path.join("System", "internal_settings.json"),
+            with open(join("System", "internal_settings.json"),
                       'r+',
                       encoding="utf-8") as internal_settings_file:
 
@@ -60,14 +64,15 @@ class CustomBot(commands.Bot):
 
             internal_settings = json.loads(internal_settings_json)
 
-            self.admins_id = list(map(int, internal_settings["ADM_ID"]))
-            self.token = internal_settings["TOKEN"]
-            self.activity_str = choice(internal_settings["Activities"])
+            self.__admins_id = list(map(int, internal_settings["ADM_ID"]))
+            self.__token = internal_settings["TOKEN"]
+            self.__activity_str = choice(internal_settings["Activities"])
         else:
             print(f"[{datetime.now()}][System]: The loading operation has failed."
-                   "The file \"internal_settings.json\" should be in the system directory")
+                  "The file \"internal_settings.json\" should be in the system directory")
 
-    async def setup(self):
+    # Métodos assícronos ------------------------------------------------------
+    async def setup(self) -> None:
         '''
         Setup do bot.
         '''
@@ -77,40 +82,104 @@ class CustomBot(commands.Bot):
 
         print(f"[{datetime.now()}][System]: Loading guilds definitions")
         for guild in self.guilds:
-            self.guild_dict[str(guild.id)] = Guild(guild.id, self)
+            self.__guild_dict[str(guild.id)] = CustomGuild(guild.id, self)
 
-        print(f"[{datetime.now()}][System]: {self.name} {self.version} ready to operate")
+        print(f"[{datetime.now()}][System]: {self.__name} {self.__version} ready to operate")
         print(f"[{datetime.now()}][System]: Logged as {self.user.name}, with the id: {self.user.id}")
 
-        await self.change_presence(activity=discord.Game(name=self.activity_str))
+        await self.set_activity()
+
+    async def set_activity(self, activity: str = None) -> None:
+        '''
+        Define a atividade.
+        '''
+
+        if activity is not None:
+            await self.change_presence(activity=discord.Game(name=activity))
+        else:
+            await self.change_presence(activity=discord.Game(name=self.__activity_str))
+
+    # Métodos -----------------------------------------------------------------
+    def run(self, *args: tuple, **kwargs: tuple) -> None:
+        '''
+        Roda o bot.
+        '''
+
+        args += (self.__token,)
+
+        return super().run(*args, **kwargs)
+
+    def write_settings_for_guild(self, guild_id: int) -> None:
+        '''
+        Salva as configurações do servidor específico.
+        '''
+
+        self.__guild_dict[str(guild_id)].write_settings()
+
+    def write_settings_for_all(self) -> None:
+        '''
+        Salva as configurações de todos os servidores.
+        '''
+
+        for guild in self.__guild_dict.values():
+            guild.write_settings()
+
+    def is_admin(self, author_id: int) -> bool:
+        '''
+        Checa se o autor é um administrador.
+        '''
+
+        return author_id in self.__admins_id
+
+    def get_info(self) -> dict:
+        '''
+        Retorna um dicionário com informações.
+        '''
+
+        info = {"Name": self.__name,
+                "Version": self.__version,
+                "HTTP loop": self.http,
+                "Latency": self.latency,
+                "Guild count": len(self.guilds),
+                "Voice clients": self.voice_clients}
+
+        return info
+
+    def get_custom_guild(self, guild_id: int):
+        '''
+        Retorna um server personalizado.
+        '''
+
+        return self.__guild_dict[str(guild_id)]
 
 
-class Guild():
+class CustomGuild():
 
     '''
     Definição de um server.
     '''
 
-    identification: int
+    # Atributos privados ------------------------------------------------------
+    __identification: int
     settings: dict
     guild: discord.guild
     main_channel: discord.TextChannel
     voice_channel: discord.VoiceChannel
     meetings: dict
 
-    def __init__(self, identification, bot):
+    def __init__(self, identification: int, bot: CustomBot) -> None:
 
-        self.identification = identification
+        self.__identification = identification
 
-        if os.path.exists(os.path.join("Guilds", f"{self.identification}.json")):
+        if os.path.exists(os.path.join("Guilds", f"{self.__identification}.json")):
 
-            with open(os.path.join("Guilds", f"{self.identification}.json"), 'r+', encoding="utf-8") as settings_file:
+            with open(os.path.join("Guilds", f"{self.__identification}.json"), 'r+', encoding="utf-8") as settings_file:
                 settings_json = settings_file.read()
 
             self.settings = json.loads(settings_json)
         else:
 
-            self.settings = {"Guild ID": self.identification,
+            self.settings = {"Guild ID": self.__identification,
                              "Main channel ID": 0,
                              "Voice channel ID": 0,
                              "Meetings": {}}
@@ -128,9 +197,9 @@ class Guild():
             for topic in meeting_topics:
                 self.meetings[meeting_name].add_topic(topic[0], topic[1])
 
-        print(f"[{datetime.now()}][System]: Guild {self.identification} initialized")
+        print(f"[{datetime.now()}][System]: Guild {self.__identification} initialized")
 
-    def write_settings(self):
+    def write_settings(self) -> None:
         '''
         Escreve as configurações do servidor.
         '''
@@ -140,23 +209,23 @@ class Guild():
         for meeting_name, meeting in self.meetings.items():
             self.settings["Meetings"][meeting_name] = list(meeting.topics.values())
 
-        with open(os.path.join("Guilds", f"{self.identification}.json"), 'w+', encoding="utf-8") as settings_file:
+        with open(os.path.join("Guilds", f"{self.__identification}.json"), 'w+', encoding="utf-8") as settings_file:
 
             settings_json = json.dumps(self.settings, indent=4)
             settings_file.write(settings_json)
 
-        print(f"[{datetime.now()}][System]: Guild {self.identification} saved")
+        print(f"[{datetime.now()}][System]: Guild {self.__identification} saved")
 
-    def update_main_channel(self, bot):
+    def update_main_channel(self, bot: CustomBot) -> None:
         '''
         Atualiza o canal principal.
         '''
 
         self.main_channel = bot.get_channel(self.settings["Main channel ID"])
 
-        print(f"[{datetime.now()}][System]: The main channel of the guild {self.identification} has been updated")
+        print(f"[{datetime.now()}][System]: The main channel of the guild {self.__identification} has been updated")
 
-    def update_voice_channel(self, bot):
+    def update_voice_channel(self, bot: CustomBot) -> None:
         '''
         Atualiza o canal de voz principal.
         '''
@@ -164,4 +233,4 @@ class Guild():
         self.voice_channel = bot.get_channel(self.settings["Voice channel ID"])
 
         print(f"[{datetime.now()}][System]: The main voice channel of the guild "
-              f"{self.identification} has been updated")
+              f"{self.__identification} has been updated")
