@@ -13,8 +13,14 @@ class DiscordUtilities():
     Utilidades.
     '''
 
+    # Métodos estáticos -------------------------------------------------------
     @staticmethod
-    async def send_message(ctx, title: str, description: str, footer: str, error: bool = False, url: str = None):
+    async def send_message(ctx,
+                           title: str,
+                           description: str,
+                           footer: str,
+                           error: bool = False,
+                           url: str = None) -> None:
         '''
         Cria um embed padronizado.
         '''

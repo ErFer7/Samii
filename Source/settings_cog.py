@@ -7,6 +7,7 @@ Módulo para a cog dos comandos de configurações.
 from datetime import datetime
 
 from discord.ext import commands
+from Source.bot_system import CustomBot
 
 from Source.utilities import DiscordUtilities
 
@@ -17,14 +18,14 @@ class SettingsCog(commands.Cog):
     Cog dos comandos de configurações.
     '''
 
-    def __init__(self, bot):
+    def __init__(self, bot: CustomBot) -> None:
 
         self.bot = bot
 
         print(f"[{datetime.now()}][Settings]: Settings system initialized")
 
     @commands.command(name="channel", aliases=("canal", "ch", "ca"))
-    async def channel_update(self, ctx):
+    async def channel_update(self, ctx) -> None:
         '''
         Define o canal principal de bots.
         '''
@@ -40,16 +41,11 @@ class SettingsCog(commands.Cog):
                                                 True)
             return
 
-        key = str(ctx.guild.id)
-
-        self.bot.guild_dict[key]. \
-            settings["Main channel ID"] = ctx.message.channel_mentions[0].id
-
-        self.bot.guild_dict[key].update_main_channel(self.bot)
+        self.bot.get_custom_guild(ctx.guild.id).update_main_channel(ctx.message.channel_mentions[0].id)
 
         await DiscordUtilities.send_message(ctx,
                                             "Canal redefinido",
-                                            f"Novo canal de textos: {self.bot.guild_dict[key].main_channel}",
+                                            f"Novo canal de textos: {ctx.message.channel_mentions[0].name}",
                                             "channel")
 
     @commands.command(name="voice_channel", aliases=("canal_voz", "vch", "cav"))
@@ -78,18 +74,13 @@ class SettingsCog(commands.Cog):
                                                 True)
             return
 
-        key = str(ctx.guild.id)
-
         channel_found = False
 
         for channel in ctx.guild.voice_channels:
 
             if channel.name == args[0]:
 
-                self.bot.guild_dict[key]. \
-                    settings["Voice channel ID"] = channel.id
-
-                self.bot.guild_dict[key].update_voice_channel(self.bot)
+                self.bot.get_custom_guild(ctx.guild.id).update_voice_channel(channel.id)
 
                 channel_found = True
 
@@ -97,7 +88,7 @@ class SettingsCog(commands.Cog):
 
             await DiscordUtilities.send_message(ctx,
                                                 "Canal de voz redefinido",
-                                                f"Novo canal de voz: {self.bot.guild_dict[key].main_channel}",
+                                                f"Novo canal de voz: {args[0]}",
                                                 "voice_channel")
         else:
 

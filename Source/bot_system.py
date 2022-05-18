@@ -161,36 +161,39 @@ class CustomGuild():
 
     # Atributos privados ------------------------------------------------------
     __identification: int
-    settings: dict
+    __bot: CustomBot
+    __settings: dict
     guild: discord.guild
     main_channel: discord.TextChannel
     voice_channel: discord.VoiceChannel
     meetings: dict
 
+    # Construtor --------------------------------------------------------------
     def __init__(self, identification: int, bot: CustomBot) -> None:
 
         self.__identification = identification
+        self.__bot = bot
 
         if os.path.exists(os.path.join("Guilds", f"{self.__identification}.json")):
 
             with open(os.path.join("Guilds", f"{self.__identification}.json"), 'r+', encoding="utf-8") as settings_file:
                 settings_json = settings_file.read()
 
-            self.settings = json.loads(settings_json)
+            self.__settings = json.loads(settings_json)
         else:
 
-            self.settings = {"Guild ID": self.__identification,
+            self.__settings = {"Guild ID": self.__identification,
                              "Main channel ID": 0,
                              "Voice channel ID": 0,
                              "Meetings": {}}
 
-        self.guild = bot.get_guild(self.settings["Guild ID"])
-        self.main_channel = bot.get_channel(self.settings["Main channel ID"])
-        self.voice_channel = bot.get_channel(self.settings["Voice channel ID"])
+        self.guild = self.__bot.get_guild(self.__settings["Guild ID"])
+        self.main_channel = self.__bot.get_channel(self.__settings["Main channel ID"])
+        self.voice_channel = self.__bot.get_channel(self.__settings["Voice channel ID"])
 
         self.meetings = {}
 
-        for meeting_name, meeting_topics in self.settings["Meetings"].items():
+        for meeting_name, meeting_topics in self.__settings["Meetings"].items():
 
             self.meetings[meeting_name] = Meeting(meeting_name)
 
@@ -199,38 +202,41 @@ class CustomGuild():
 
         print(f"[{datetime.now()}][System]: Guild {self.__identification} initialized")
 
+    # Métodos -----------------------------------------------------------------
     def write_settings(self) -> None:
         '''
         Escreve as configurações do servidor.
         '''
 
-        self.settings["Meetings"].clear()
+        self.__settings["Meetings"].clear()
 
         for meeting_name, meeting in self.meetings.items():
-            self.settings["Meetings"][meeting_name] = list(meeting.topics.values())
+            self.__settings["Meetings"][meeting_name] = list(meeting.topics.values())
 
         with open(os.path.join("Guilds", f"{self.__identification}.json"), 'w+', encoding="utf-8") as settings_file:
 
-            settings_json = json.dumps(self.settings, indent=4)
+            settings_json = json.dumps(self.__settings, indent=4)
             settings_file.write(settings_json)
 
         print(f"[{datetime.now()}][System]: Guild {self.__identification} saved")
 
-    def update_main_channel(self, bot: CustomBot) -> None:
+    def update_main_channel(self, main_channel_id: int) -> None:
         '''
         Atualiza o canal principal.
         '''
 
-        self.main_channel = bot.get_channel(self.settings["Main channel ID"])
+        self.__settings["Main channel ID"] = main_channel_id
+        self.main_channel = self.__bot.get_channel(self.__settings["Main channel ID"])
 
         print(f"[{datetime.now()}][System]: The main channel of the guild {self.__identification} has been updated")
 
-    def update_voice_channel(self, bot: CustomBot) -> None:
+    def update_voice_channel(self, voice_channel_id: int) -> None:
         '''
         Atualiza o canal de voz principal.
         '''
 
-        self.voice_channel = bot.get_channel(self.settings["Voice channel ID"])
+        self.__settings["Voice channel ID"] = voice_channel_id
+        self.voice_channel = self.__bot.get_channel(self.__settings["Voice channel ID"])
 
         print(f"[{datetime.now()}][System]: The main voice channel of the guild "
               f"{self.__identification} has been updated")
