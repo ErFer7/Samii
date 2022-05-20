@@ -163,10 +163,10 @@ class CustomGuild():
     __identification: int
     __bot: CustomBot
     __settings: dict
-    guild: discord.guild
-    main_channel: discord.TextChannel
-    voice_channel: discord.VoiceChannel
-    meetings: dict
+    __guild: discord.Guild
+    __main_channel: discord.TextChannel
+    __voice_channel: discord.VoiceChannel
+    __meetings: dict
 
     # Construtor --------------------------------------------------------------
     def __init__(self, identification: int, bot: CustomBot) -> None:
@@ -183,22 +183,22 @@ class CustomGuild():
         else:
 
             self.__settings = {"Guild ID": self.__identification,
-                             "Main channel ID": 0,
-                             "Voice channel ID": 0,
-                             "Meetings": {}}
+                               "Main channel ID": 0,
+                               "Voice channel ID": 0,
+                               "Meetings": {}}
 
-        self.guild = self.__bot.get_guild(self.__settings["Guild ID"])
-        self.main_channel = self.__bot.get_channel(self.__settings["Main channel ID"])
-        self.voice_channel = self.__bot.get_channel(self.__settings["Voice channel ID"])
+        self.__guild = self.__bot.get_guild(self.__identification)
+        self.__main_channel = self.__bot.get_channel(self.__settings["Main channel ID"])
+        self.__voice_channel = self.__bot.get_channel(self.__settings["Voice channel ID"])
 
-        self.meetings = {}
+        self.__meetings = {}
 
         for meeting_name, meeting_topics in self.__settings["Meetings"].items():
 
-            self.meetings[meeting_name] = Meeting(meeting_name)
+            self.__meetings[meeting_name] = Meeting(meeting_name)
 
             for topic in meeting_topics:
-                self.meetings[meeting_name].add_topic(topic[0], topic[1])
+                self.__meetings[meeting_name].add_topic(topic[0], topic[1])
 
         print(f"[{datetime.now()}][System]: Guild {self.__identification} initialized")
 
@@ -210,7 +210,7 @@ class CustomGuild():
 
         self.__settings["Meetings"].clear()
 
-        for meeting_name, meeting in self.meetings.items():
+        for meeting_name, meeting in self.__meetings.items():
             self.__settings["Meetings"][meeting_name] = list(meeting.topics.values())
 
         with open(os.path.join("Guilds", f"{self.__identification}.json"), 'w+', encoding="utf-8") as settings_file:
@@ -220,15 +220,35 @@ class CustomGuild():
 
         print(f"[{datetime.now()}][System]: Guild {self.__identification} saved")
 
+    def get_main_channel(self) -> discord.TextChannel:
+        '''
+        Retorna o canal principal caso ele exista.
+        '''
+
+        if self.__bot.get_channel(self.__settings["Main channel ID"]) is None:
+            self.__main_channel = self.__guild.text_channels[0]
+
+        return self.__main_channel
+
     def update_main_channel(self, main_channel_id: int) -> None:
         '''
         Atualiza o canal principal.
         '''
 
         self.__settings["Main channel ID"] = main_channel_id
-        self.main_channel = self.__bot.get_channel(self.__settings["Main channel ID"])
+        self.__main_channel = self.__bot.get_channel(self.__settings["Main channel ID"])
 
         print(f"[{datetime.now()}][System]: The main channel of the guild {self.__identification} has been updated")
+
+    def get_voice_channel(self) -> discord.VoiceChannel:
+        '''
+        Retorna o canal de voz principal caso ele exista.
+        '''
+
+        if self.__bot.get_channel(self.__settings["Voice channel ID"]):
+            self.__voice_channel = self.__guild.voice_channels[0]
+
+        return self.__voice_channel
 
     def update_voice_channel(self, voice_channel_id: int) -> None:
         '''
@@ -236,7 +256,35 @@ class CustomGuild():
         '''
 
         self.__settings["Voice channel ID"] = voice_channel_id
-        self.voice_channel = self.__bot.get_channel(self.__settings["Voice channel ID"])
+        self.__voice_channel = self.__bot.get_channel(self.__settings["Voice channel ID"])
 
         print(f"[{datetime.now()}][System]: The main voice channel of the guild "
               f"{self.__identification} has been updated")
+
+    def add_meeting(self, name: str, meeting: Meeting) -> None:
+        '''
+        Adiciona uma reunião.
+        '''
+
+        self.__meetings[name] = meeting
+
+    def remove_meeting(self, name: str) -> None:
+        '''
+        Remove uma reunião.
+        '''
+
+        del self.__meetings[name]
+
+    def get_meeting(self, name: str) -> Meeting:
+        '''
+        Retorna uma reunião.
+        '''
+
+        return self.__meetings[name]
+
+    def meeting_exist(self, name: str) -> bool:
+        '''
+        Retorna verdadeiro se a reunião existir.
+        '''
+
+        return name in self.__meetings

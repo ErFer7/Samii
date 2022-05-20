@@ -17,14 +17,13 @@ class HelpCog(commands.Cog):
     Cog dos comandos de ajuda.
     '''
 
-    def __init__(self, bot):
-
-        self.bot = bot
-
+    # Construtor --------------------------------------------------------------
+    def __init__(self) -> None:
         print(f"[{datetime.now()}][Help]: Help system initialized")
 
+    # Comandos ----------------------------------------------------------------
     @commands.command(name="help", aliases=("ajuda", "h", "aj"))
-    async def custom_help(self, ctx):
+    async def custom_help(self, ctx) -> None:
         '''
         Envia uma mensagem de ajuda.
         '''

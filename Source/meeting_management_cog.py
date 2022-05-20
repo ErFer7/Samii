@@ -141,7 +141,7 @@ class MeetingManagementCog(commands.Cog):
                                                 True)
             return
 
-        if args[0] in self.bot.get_custom_guild(ctx.guild.id).meetings:
+        if self.bot.get_custom_guild(ctx.guild.id).meeting_exist(args[0]):
 
             await DiscordUtilities.send_message(ctx,
                                                 "Comando inválido",
@@ -150,7 +150,7 @@ class MeetingManagementCog(commands.Cog):
                                                 True)
             return
 
-        self.bot.get_custom_guild(ctx.guild.id).meetings[args[0]] = Meeting(args[0])
+        self.bot.get_custom_guild(ctx.guild.id).add_meeting(args[0], Meeting(args[0]))
 
         await DiscordUtilities.send_message(ctx,
                                             "Reunião adicionada",
@@ -174,7 +174,7 @@ class MeetingManagementCog(commands.Cog):
                                                 True)
             return
 
-        if args[0] not in self.bot.get_custom_guild(ctx.guild.id).meetings:
+        if not self.bot.get_custom_guild(ctx.guild.id).meeting_exist(args[0]):
 
             await DiscordUtilities.send_message(ctx,
                                                 "Comando inválido",
@@ -183,7 +183,7 @@ class MeetingManagementCog(commands.Cog):
                                                 True)
             return
 
-        del self.bot.get_custom_guild(ctx.guild.id).meetings[args[0]]
+        self.bot.get_custom_guild(ctx.guild.id).remove_meeting(args[0])
 
         await DiscordUtilities.send_message(ctx,
                                             "Reunião removida",
@@ -207,7 +207,7 @@ class MeetingManagementCog(commands.Cog):
                                                 True)
             return
 
-        if args[0] not in self.bot.get_custom_guild(ctx.guild.id).meetings:
+        if not self.bot.get_custom_guild(ctx.guild.id).meeting_exist(args[0]):
 
             await DiscordUtilities.send_message(ctx,
                                                 "Comando inválido",
@@ -216,7 +216,7 @@ class MeetingManagementCog(commands.Cog):
                                                 True)
             return
 
-        meeting = self.bot.get_custom_guild(ctx.guild.id).meetings[args[0]]
+        meeting = self.bot.get_custom_guild(ctx.guild.id).get_meeting(args[0])
 
         if meeting.topic_count == 0:
 
@@ -238,8 +238,8 @@ class MeetingManagementCog(commands.Cog):
 
         meeting.start()
 
-        text_channel = self.bot.get_custom_guild(ctx.guild.id).main_channel
-        voice_channel = self.bot.get_custom_guild(ctx.guild.id).voice_channel
+        text_channel = self.bot.get_custom_guild(ctx.guild.id).get_main_channel()
+        voice_channel = self.bot.get_custom_guild(ctx.guild.id).get_voice_channel()
 
         if text_channel is None:
             text_channel = ctx.channel
@@ -325,7 +325,7 @@ class MeetingManagementCog(commands.Cog):
                                                 True)
             return
 
-        if args[0] not in self.bot.get_custom_guild(ctx.guild.id).meetings:
+        if not self.bot.get_custom_guild(ctx.guild.id).meeting_exist(args[0]):
 
             await DiscordUtilities.send_message(ctx,
                                                 "Comando inválido",
@@ -334,7 +334,7 @@ class MeetingManagementCog(commands.Cog):
                                                 True)
             return
 
-        if self.bot.get_custom_guild(ctx.guild.id).meetings[args[0]].has_topic(args[1]):
+        if self.bot.get_custom_guild(ctx.guild.id).get_meeting(args[0]).has_topic(args[1]):
 
             await DiscordUtilities.send_message(ctx,
                                                 "Comando inválido",
@@ -352,7 +352,7 @@ class MeetingManagementCog(commands.Cog):
                                                 True)
             return
 
-        meeting = self.bot.get_custom_guild(ctx.guild.id).meetings[args[0]]
+        meeting = self.bot.get_custom_guild(ctx.guild.id).get_meeting(args[0])
 
         meeting.add_topic(args[1], int(args[2]) * 60)
 
@@ -379,7 +379,7 @@ class MeetingManagementCog(commands.Cog):
                                                 True)
             return
 
-        if args[0] not in self.bot.get_custom_guild(ctx.guild.id).meetings:
+        if not self.bot.get_custom_guild(ctx.guild.id).meeting_exist(args[0]):
 
             await DiscordUtilities.send_message(ctx,
                                                 "Comando inválido",
@@ -388,7 +388,7 @@ class MeetingManagementCog(commands.Cog):
                                                 True)
             return
 
-        if not self.bot.get_custom_guild(ctx.guild.id).meetings[args[0]].has_topic(args[1]):
+        if not self.bot.get_custom_guild(ctx.guild.id).get_meeting(args[0]).has_topic(args[1]):
 
             await DiscordUtilities.send_message(ctx,
                                                 "Comando inválido",
@@ -397,7 +397,7 @@ class MeetingManagementCog(commands.Cog):
                                                 True)
             return
 
-        self.bot.get_custom_guild(ctx.guild.id).meetings[args[0]].remove_topic(args[1])
+        self.bot.get_custom_guild(ctx.guild.id).get_meeting(args[0]).remove_topic(args[1])
 
         await DiscordUtilities.send_message(ctx,
                                             "Tópico removido",

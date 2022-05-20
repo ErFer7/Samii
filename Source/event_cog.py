@@ -15,14 +15,13 @@ class EventCog(commands.Cog):
     Cog dos eventos.
     '''
 
-    def __init__(self, bot):
-
-        self.bot = bot
-
+    # Construtor --------------------------------------------------------------
+    def __init__(self) -> None:
         print(f"[{datetime.now()}][Event]: Event system initialized")
 
+    # Eventos -----------------------------------------------------------------
     @commands.Cog.listener()
-    async def on_message(self, message):
+    async def on_message(self, message) -> None:
         '''
         Evento de mensagens.
         '''
@@ -31,7 +30,7 @@ class EventCog(commands.Cog):
               f"A message was sent in the channel [{message.channel}] by [{message.author.name}]")
 
     @commands.Cog.listener()
-    async def on_connect(self):
+    async def on_connect(self) -> None:
         '''
         Evento de conexão.
         '''
@@ -39,7 +38,7 @@ class EventCog(commands.Cog):
         print(f"[{datetime.now()}][Event]: Connected")
 
     @commands.Cog.listener()
-    async def on_disconnect(self):
+    async def on_disconnect(self) -> None:
         '''
         Evento de desconexão.
         '''
@@ -47,7 +46,7 @@ class EventCog(commands.Cog):
         print(f"[{datetime.now()}][Event]: Disconnected")
 
     @commands.Cog.listener()
-    async def on_resumed(self):
+    async def on_resumed(self) -> None:
         '''
         Evento de retorno.
         '''
@@ -55,7 +54,7 @@ class EventCog(commands.Cog):
         print(f"[{datetime.now()}][Event]: Resumed")
 
     @commands.Cog.listener()
-    async def on_member_update(self, before, after):
+    async def on_member_update(self, before, after) -> None:
         '''
         Evento de atualização de usuário.
         '''
