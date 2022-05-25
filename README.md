@@ -69,3 +69,9 @@ Samii (Sorry am I interrupting?) is a bot that helps with the time management an
 ## v0.6.1
 
 * Small refactor in the CustomGuild class.
+
+---
+
+## v0.7
+
+* Code completely refactored
