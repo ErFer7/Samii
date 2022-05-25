@@ -22,110 +22,115 @@ class MeetingManagementCog(commands.Cog):
     Cog de gerenciamento de reuniões.
     '''
 
-    bot: None
-    active_meeting: None
-    active_text_channel: None
-    active_voice_channel: None
-    voice_client: None
-    low_time_notified: bool
+    # Atributos privados ------------------------------------------------------
+    __bot: None
+    __active_meeting: None
+    __active_text_channel: discord.TextChannel
+    __active_voice_channel: discord.VoiceChannel
+    __voice_client: discord.VoiceClient
+    __low_time_notified: bool
 
-    def __init__(self, bot):
+    # Construtor --------------------------------------------------------------
+    def __init__(self, bot) -> None:
 
-        self.bot = bot
-        self.active_meeting = None
-        self.active_text_channel = None
-        self.active_voice_channel = None
-        self.voice_client = None
-        self.low_time_notified = False
+        self.__bot = bot
+        self.__active_meeting = None
+        self.__active_text_channel = None
+        self.__active_voice_channel = None
+        self.__voice_client = None
+        self.__low_time_notified = False
 
         self.run_meeting.start()
 
         print(f"[{datetime.now()}][Meeting]: Meeting system initialized")
 
-    def play_audio(self, source: str):
+    # Métodos -----------------------------------------------------------------
+    def play_audio(self, source: str) -> None:
         '''
         Toca um áudio.
         '''
 
-        if self.voice_client is not None and self.voice_client.is_connected():
+        if self.__voice_client is not None and self.__voice_client.is_connected():
 
-            if self.voice_client.is_playing():
-                self.voice_client.stop()
+            if self.__voice_client.is_playing():
+                self.__voice_client.stop()
 
             executable = join("System", "ffmpeg.exe")
 
-            self.voice_client.play(discord.FFmpegPCMAudio(source=source,
-                                                          executable=executable))
+            self.__voice_client.play(discord.FFmpegPCMAudio(source=source,
+                                                            executable=executable))
 
+    # Loops -------------------------------------------------------------------
     @tasks.loop(seconds=1.0)
-    async def run_meeting(self):
+    async def run_meeting(self) -> None:
         '''
         Executa uma reunião.
         '''
 
         remaining_time = -1
 
-        if self.active_meeting is not None:
+        if self.__active_meeting is not None:
 
-            self.active_meeting.update_time()
+            self.__active_meeting.update_time()
 
-            if self.active_meeting.time_remaining() // 60 != remaining_time:
+            if self.__active_meeting.time_remaining() // 60 != remaining_time:
 
-                remaining_time = self.active_meeting.time_remaining() // 60
+                remaining_time = self.__active_meeting.time_remaining() // 60
 
-                await self.bot.set_activity(f"{self.active_meeting.name}: {remaining_time:.0f} min")
+                await self.__bot.set_activity(f"{self.__active_meeting.name}: {remaining_time:.0f} min")
 
-            if self.active_meeting.topic_has_changed:
+            if self.__active_meeting.topic_has_changed:
 
                 self.play_audio(join("Audio", "Topic Change Notification.wav"))
 
-                await DiscordUtilities.send_message(self.active_text_channel,
+                await DiscordUtilities.send_message(self.__active_text_channel,
                                                     "Tópico atual",
-                                                    self.active_meeting.current_topic,
-                                                    self.active_meeting.name)
+                                                    self.__active_meeting.current_topic,
+                                                    self.__active_meeting.name)
 
-            if self.active_meeting.time_remaining() <= 0.0:
+            if self.__active_meeting.time_remaining() <= 0.0:
 
-                self.active_meeting.reset()
+                self.__active_meeting.reset()
 
-                if self.voice_client is not None and self.voice_client.is_connected():
+                if self.__voice_client is not None and self.__voice_client.is_connected():
 
-                    for member in self.active_voice_channel.members:
+                    for member in self.__active_voice_channel.members:
 
-                        if member != self.bot:
+                        if member != self.__bot:
                             await member.move_to(None)
 
-                    await self.voice_client.disconnect()
+                    await self.__voice_client.disconnect()
 
-                    self.voice_client = None
+                    self.__voice_client = None
 
-                await DiscordUtilities.send_message(self.active_text_channel,
+                await DiscordUtilities.send_message(self.__active_text_channel,
                                                     "Reunião encerrada",
-                                                    f"A reunião \"{self.active_meeting.name}\" acabou",
-                                                    self.active_meeting.name)
+                                                    f"A reunião \"{self.__active_meeting.name}\" acabou",
+                                                    self.__active_meeting.name)
 
-                self.active_meeting = None
-                self.active_text_channel = None
-                self.active_voice_channel = None
-                self.low_time_notified = 0
+                self.__active_meeting = None
+                self.__active_text_channel = None
+                self.__active_voice_channel = None
+                self.__low_time_notified = 0
 
-                await self.bot.set_activity()
-            elif self.active_meeting.time_remaining() <= 10.0:
+                await self.__bot.set_activity()
+            elif self.__active_meeting.time_remaining() <= 10.0:
 
                 self.play_audio(join("Audio", "Final Notification.ogg"))
-            elif self.active_meeting.time_remaining() <= 600.0 and not self.low_time_notified:
+            elif self.__active_meeting.time_remaining() <= 600.0 and not self.__low_time_notified:
 
-                self.low_time_notified = True
+                self.__low_time_notified = True
 
                 self.play_audio(join("Audio", "Time Notification.wav"))
 
-                await DiscordUtilities.send_message(self.active_text_channel,
+                await DiscordUtilities.send_message(self.__active_text_channel,
                                                     "Notificação de tempo",
                                                     "A reunião acaba em menos de 10 minutos!",
-                                                    self.active_meeting.name)
+                                                    self.__active_meeting.name)
 
+    # Comandos ----------------------------------------------------------------
     @commands.command(name="meeting", aliases=("reunião", "mt", "rn"))
-    async def create_meeting(self, ctx, *args):
+    async def create_meeting(self, ctx, *args) -> None:
         '''
         Adiciona uma reunião.
         '''
@@ -141,7 +146,7 @@ class MeetingManagementCog(commands.Cog):
                                                 True)
             return
 
-        if self.bot.get_custom_guild(ctx.guild.id).meeting_exist(args[0]):
+        if self.__bot.get_custom_guild(ctx.guild.id).meeting_exist(args[0]):
 
             await DiscordUtilities.send_message(ctx,
                                                 "Comando inválido",
@@ -150,7 +155,7 @@ class MeetingManagementCog(commands.Cog):
                                                 True)
             return
 
-        self.bot.get_custom_guild(ctx.guild.id).add_meeting(args[0], Meeting(args[0]))
+        self.__bot.get_custom_guild(ctx.guild.id).add_meeting(args[0], Meeting(args[0]))
 
         await DiscordUtilities.send_message(ctx,
                                             "Reunião adicionada",
@@ -158,7 +163,7 @@ class MeetingManagementCog(commands.Cog):
                                             "meeting")
 
     @commands.command(name="remove_meeting", aliases=("remover_reunião", "rmt", "rrn"))
-    async def remove_meeting(self, ctx, *args):
+    async def remove_meeting(self, ctx, *args) -> None:
         '''
         Remove uma reunião.
         '''
@@ -174,7 +179,7 @@ class MeetingManagementCog(commands.Cog):
                                                 True)
             return
 
-        if not self.bot.get_custom_guild(ctx.guild.id).meeting_exist(args[0]):
+        if not self.__bot.get_custom_guild(ctx.guild.id).meeting_exist(args[0]):
 
             await DiscordUtilities.send_message(ctx,
                                                 "Comando inválido",
@@ -183,7 +188,7 @@ class MeetingManagementCog(commands.Cog):
                                                 True)
             return
 
-        self.bot.get_custom_guild(ctx.guild.id).remove_meeting(args[0])
+        self.__bot.get_custom_guild(ctx.guild.id).remove_meeting(args[0])
 
         await DiscordUtilities.send_message(ctx,
                                             "Reunião removida",
@@ -191,7 +196,7 @@ class MeetingManagementCog(commands.Cog):
                                             "remove meeting")
 
     @commands.command(name="start", aliases=("iniciar", "st", "in"))
-    async def start_meeting(self, ctx, *args):
+    async def start_meeting(self, ctx, *args) -> None:
         '''
         Inicia uma reunião.
         '''
@@ -207,7 +212,7 @@ class MeetingManagementCog(commands.Cog):
                                                 True)
             return
 
-        if not self.bot.get_custom_guild(ctx.guild.id).meeting_exist(args[0]):
+        if not self.__bot.get_custom_guild(ctx.guild.id).meeting_exist(args[0]):
 
             await DiscordUtilities.send_message(ctx,
                                                 "Comando inválido",
@@ -216,7 +221,7 @@ class MeetingManagementCog(commands.Cog):
                                                 True)
             return
 
-        meeting = self.bot.get_custom_guild(ctx.guild.id).get_meeting(args[0])
+        meeting = self.__bot.get_custom_guild(ctx.guild.id).get_meeting(args[0])
 
         if meeting.topic_count == 0:
 
@@ -227,7 +232,7 @@ class MeetingManagementCog(commands.Cog):
                                                 True)
             return
 
-        if self.active_meeting is not None:
+        if self.__active_meeting is not None:
 
             await DiscordUtilities.send_message(ctx,
                                                 "Comando inválido",
@@ -238,34 +243,34 @@ class MeetingManagementCog(commands.Cog):
 
         meeting.start()
 
-        text_channel = self.bot.get_custom_guild(ctx.guild.id).get_main_channel()
-        voice_channel = self.bot.get_custom_guild(ctx.guild.id).get_voice_channel()
+        text_channel = self.__bot.get_custom_guild(ctx.guild.id).get_main_channel()
+        voice_channel = self.__bot.get_custom_guild(ctx.guild.id).get_voice_channel()
 
         if text_channel is None:
             text_channel = ctx.channel
 
-        self.active_meeting = meeting
-        self.active_text_channel = text_channel
-        self.active_voice_channel = voice_channel
+        self.__active_meeting = meeting
+        self.__active_text_channel = text_channel
+        self.__active_voice_channel = voice_channel
 
-        if voice_channel is not None and self.voice_client is None:
-            self.voice_client = await voice_channel.connect()
+        if voice_channel is not None and self.__voice_client is None:
+            self.__voice_client = await voice_channel.connect()
 
-            if self.voice_client is not None and self.voice_client.is_connected():
+            if self.__voice_client is not None and self.__voice_client.is_connected():
 
-                if self.voice_client.is_playing():
-                    self.voice_client.stop()
+                if self.__voice_client.is_playing():
+                    self.__voice_client.stop()
 
                 source = join("Audio", "Topic Change Notification.wav")
                 executable = join("System", "ffmpeg.exe")
 
-                self.voice_client.play(discord.FFmpegPCMAudio(source=source,
-                                                              executable=executable))
+                self.__voice_client.play(discord.FFmpegPCMAudio(source=source,
+                                                                executable=executable))
 
         await DiscordUtilities.send_message(ctx,
                                             "Reunião iniciada",
                                             f"Nome da reunião: {args[0]}\n"
-                                            f"Duração da reunião: {timedelta(seconds=meeting.total_time)}",
+                                            f"Duração da reunião: {meeting.get_total_time()}",
                                             "start")
 
         await DiscordUtilities.send_message(text_channel,
@@ -274,14 +279,14 @@ class MeetingManagementCog(commands.Cog):
                                             "start")
 
     @commands.command(name="stop", aliases=("parar", "s", "p"))
-    async def stop_meeting(self, ctx):
+    async def stop_meeting(self, ctx) -> None:
         '''
         Para uma reunião.
         '''
 
         print(f"[{datetime.now()}][Meeting]: <stop_meeting> (Author: {ctx.author.name})")
 
-        if self.active_meeting is None:
+        if self.__active_meeting is None:
 
             await DiscordUtilities.send_message(ctx,
                                                 "Comando inválido",
@@ -290,25 +295,25 @@ class MeetingManagementCog(commands.Cog):
                                                 True)
             return
 
-        self.active_meeting.reset()
+        self.__active_meeting.reset()
 
-        if self.voice_client is not None and self.voice_client.is_connected():
+        if self.__voice_client is not None and self.__voice_client.is_connected():
 
-            await self.voice_client.disconnect()
-            self.voice_client = None
+            await self.__voice_client.disconnect()
+            self.__voice_client = None
 
-        await DiscordUtilities.send_message(self.active_text_channel,
+        await DiscordUtilities.send_message(self.__active_text_channel,
                                             "Reunião encerrada",
-                                            f"A reunião \"{self.active_meeting.name}\" foi cancelada",
-                                            self.active_meeting.name)
+                                            f"A reunião \"{self.__active_meeting.name}\" foi cancelada",
+                                            self.__active_meeting.name)
 
-        self.active_meeting = None
-        self.active_text_channel = None
-        self.active_voice_channel = None
-        self.low_time_notified = 0
+        self.__active_meeting = None
+        self.__active_text_channel = None
+        self.__active_voice_channel = None
+        self.__low_time_notified = 0
 
     @commands.command(name="add", aliases=("adicionar", "a"))
-    async def add_topic(self, ctx, *args):
+    async def add_topic(self, ctx, *args) -> None:
         '''
         Adiciona um tópico à uma reunião.
         '''
@@ -325,7 +330,7 @@ class MeetingManagementCog(commands.Cog):
                                                 True)
             return
 
-        if not self.bot.get_custom_guild(ctx.guild.id).meeting_exist(args[0]):
+        if not self.__bot.get_custom_guild(ctx.guild.id).meeting_exist(args[0]):
 
             await DiscordUtilities.send_message(ctx,
                                                 "Comando inválido",
@@ -334,7 +339,7 @@ class MeetingManagementCog(commands.Cog):
                                                 True)
             return
 
-        if self.bot.get_custom_guild(ctx.guild.id).get_meeting(args[0]).has_topic(args[1]):
+        if self.__bot.get_custom_guild(ctx.guild.id).get_meeting(args[0]).has_topic(args[1]):
 
             await DiscordUtilities.send_message(ctx,
                                                 "Comando inválido",
@@ -352,7 +357,7 @@ class MeetingManagementCog(commands.Cog):
                                                 True)
             return
 
-        meeting = self.bot.get_custom_guild(ctx.guild.id).get_meeting(args[0])
+        meeting = self.__bot.get_custom_guild(ctx.guild.id).get_meeting(args[0])
 
         meeting.add_topic(args[1], int(args[2]) * 60)
 
@@ -363,7 +368,7 @@ class MeetingManagementCog(commands.Cog):
                                             "add")
 
     @commands.command(name="remove", aliases=("remover", "r"))
-    async def remove_topic(self, ctx, *args):
+    async def remove_topic(self, ctx, *args) -> None:
         '''
         Remove um tópico.
         '''
@@ -379,7 +384,7 @@ class MeetingManagementCog(commands.Cog):
                                                 True)
             return
 
-        if not self.bot.get_custom_guild(ctx.guild.id).meeting_exist(args[0]):
+        if not self.__bot.get_custom_guild(ctx.guild.id).meeting_exist(args[0]):
 
             await DiscordUtilities.send_message(ctx,
                                                 "Comando inválido",
@@ -388,7 +393,7 @@ class MeetingManagementCog(commands.Cog):
                                                 True)
             return
 
-        if not self.bot.get_custom_guild(ctx.guild.id).get_meeting(args[0]).has_topic(args[1]):
+        if not self.__bot.get_custom_guild(ctx.guild.id).get_meeting(args[0]).has_topic(args[1]):
 
             await DiscordUtilities.send_message(ctx,
                                                 "Comando inválido",
@@ -397,7 +402,7 @@ class MeetingManagementCog(commands.Cog):
                                                 True)
             return
 
-        self.bot.get_custom_guild(ctx.guild.id).get_meeting(args[0]).remove_topic(args[1])
+        self.__bot.get_custom_guild(ctx.guild.id).get_meeting(args[0]).remove_topic(args[1])
 
         await DiscordUtilities.send_message(ctx,
                                             "Tópico removido",
@@ -411,78 +416,90 @@ class Meeting():
     Reunião.
     '''
 
+    # Atributos públicos ------------------------------------------------------
     name: str
-    total_time: int
-    topic_count: int
-    current_topic_id_index: int
-    current_topic: str
-    cummulative_topic_time: int
-    time_counter: int
-    topics: dict
     topic_has_changed: bool
-    last_topic_id: int
-    last_time: float
+    topic_count: int
+    current_topic: str
 
-    def __init__(self, name: str):
+    # Atributos privados ------------------------------------------------------
+    __total_time: int
+    __current_topic_id_index: int
+    __cummulative_topic_time: int
+    __time_counter: int
+    __topics: dict
+    __last_topic_id: int
+    __last_time: float
+
+    # Construtor --------------------------------------------------------------
+    def __init__(self, name: str) -> None:
 
         self.name = name
-        self.total_time = 0
+        self.__total_time = 0
         self.topic_count = 0
-        self.current_topic_id_index = 0
+        self.__current_topic_id_index = 0
         self.current_topic = ''
-        self.time_counter = 0
-        self.cummulative_topic_time = 0
-        self.topics = {}
+        self.__time_counter = 0
+        self.__cummulative_topic_time = 0
+        self.__topics = {}
         self.topic_has_changed = False
-        self.last_topic_id = 0
-        self.last_time = None
+        self.__last_topic_id = 0
+        self.__last_time = None
 
-    def add_topic(self, topic: str, duration: int):
+    # Métodos -----------------------------------------------------------------
+    def add_topic(self, topic: str, duration: int) -> None:
         '''
         Adiciona um novo tópico.
         '''
 
-        self.topics[self.last_topic_id] = (topic, duration)
+        self.__topics[self.__last_topic_id] = (topic, duration)
         self.topic_count += 1
-        self.total_time += duration
-        self.last_topic_id += 1
+        self.__total_time += duration
+        self.__last_topic_id += 1
 
-    def has_topic(self, topic: str):
+    def has_topic(self, topic: str) -> bool:
         '''
         Verifica se o tópíco existe.
         '''
 
-        for topic_tuple in self.topics.values():
+        for topic_tuple in self.__topics.values():
 
             if topic_tuple[0] == topic:
                 return True
 
         return False
 
-    def remove_topic(self, topic: str):
+    def remove_topic(self, topic: str) -> None:
         '''
         Remove um tópico.
         '''
 
-        for topic_id, topic_tuple in self.topics.items():
+        for topic_id, topic_tuple in self.__topics.items():
 
             if topic_tuple[0] == topic:
 
                 self.topic_count -= 1
-                self.total_time -= topic_tuple[1]
-                del self.topics[topic_id]
+                self.__total_time -= topic_tuple[1]
+                del self.__topics[topic_id]
                 break
 
-    def start(self):
+    def get_topics(self) -> list:
+        '''
+        Retorna uma lista de tópicos
+        '''
+
+        return list(self.__topics.values())
+
+    def start(self) -> None:
         '''
         Inicia a reunião.
         '''
 
-        self.current_topic = self.topics[list(self.topics.keys())[self.current_topic_id_index]][0]
-        self.cummulative_topic_time = self.topics[list(self.topics.keys())[self.current_topic_id_index]][1]
-        self.last_time = time()
+        self.current_topic = self.__topics[list(self.__topics.keys())[self.__current_topic_id_index]][0]
+        self.__cummulative_topic_time = self.__topics[list(self.__topics.keys())[self.__current_topic_id_index]][1]
+        self.__last_time = time()
 
-    def update_time(self):
+    def update_time(self) -> None:
         '''
         Passa o tempo.
         '''
@@ -491,32 +508,40 @@ class Meeting():
 
         current_time = time()
 
-        self.time_counter += current_time - self.last_time
-        self.last_time = current_time
+        self.__time_counter += current_time - self.__last_time
+        self.__last_time = current_time
 
-        if self.cummulative_topic_time <= self.time_counter:
+        if self.__cummulative_topic_time <= self.__time_counter:
 
-            self.current_topic_id_index += 1
+            self.__current_topic_id_index += 1
 
-            if self.current_topic_id_index < self.topic_count:
+            if self.__current_topic_id_index < self.topic_count:
 
-                self.current_topic = self.topics[list(self.topics.keys())[self.current_topic_id_index]][0]
-                self.cummulative_topic_time += self.topics[list(self.topics.keys())[self.current_topic_id_index]][1]
+                self.current_topic = self.__topics[list(self.__topics.keys())[self.__current_topic_id_index]][0]
+                self.__cummulative_topic_time += self.__topics[list(self.__topics.keys())
+                                                               [self.__current_topic_id_index]][1]
                 self.topic_has_changed = True
 
-    def time_remaining(self):
+    def get_total_time(self) -> timedelta:
+        '''
+        Retorna o tempo total.
+        '''
+
+        return timedelta(seconds=self.__total_time)
+
+    def time_remaining(self) -> int:
         '''
         Verifica o tempo restante.
         '''
 
-        return self.total_time - self.time_counter
+        return self.__total_time - self.__time_counter
 
-    def reset(self):
+    def reset(self) -> None:
         '''
         Reseta a reunião.
         '''
 
-        self.current_topic_id_index = 0
+        self.__current_topic_id_index = 0
         self.current_topic = ''
-        self.time_counter = 0
+        self.__time_counter = 0
         self.topic_has_changed = False

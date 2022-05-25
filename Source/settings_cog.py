@@ -18,12 +18,17 @@ class SettingsCog(commands.Cog):
     Cog dos comandos de configurações.
     '''
 
+    # Atributos privados ------------------------------------------------------
+    __bot: CustomBot
+
+    # Construtor --------------------------------------------------------------
     def __init__(self, bot: CustomBot) -> None:
 
-        self.bot = bot
+        self.__bot = bot
 
         print(f"[{datetime.now()}][Settings]: Settings system initialized")
 
+    # Comandos ----------------------------------------------------------------
     @commands.command(name="channel", aliases=("canal", "ch", "ca"))
     async def channel_update(self, ctx) -> None:
         '''
@@ -41,7 +46,7 @@ class SettingsCog(commands.Cog):
                                                 True)
             return
 
-        self.bot.get_custom_guild(ctx.guild.id).update_main_channel(ctx.message.channel_mentions[0].id)
+        self.__bot.get_custom_guild(ctx.guild.id).update_main_channel(ctx.message.channel_mentions[0].id)
 
         await DiscordUtilities.send_message(ctx,
                                             "Canal redefinido",
@@ -49,7 +54,7 @@ class SettingsCog(commands.Cog):
                                             "channel")
 
     @commands.command(name="voice_channel", aliases=("canal_voz", "vch", "cav"))
-    async def voice_channel_update(self, ctx, *args):
+    async def voice_channel_update(self, ctx, *args) -> None:
         '''
         Define o canal de voz do bot.
         '''
@@ -80,7 +85,7 @@ class SettingsCog(commands.Cog):
 
             if channel.name == args[0]:
 
-                self.bot.get_custom_guild(ctx.guild.id).update_voice_channel(channel.id)
+                self.__bot.get_custom_guild(ctx.guild.id).update_voice_channel(channel.id)
 
                 channel_found = True
 

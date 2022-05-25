@@ -18,7 +18,7 @@ from Source.event_cog import EventCog
 
 # Constantes
 NAME = "Samii"
-VERSION = "0.6.1-dev"
+VERSION = "0.7"
 
 # Corrige o erro de saída temporáriamente.
 if sys.version_info[0] == 3 and sys.version_info[1] >= 8 and sys.platform.startswith('win'):

@@ -211,7 +211,7 @@ class CustomGuild():
         self.__settings["Meetings"].clear()
 
         for meeting_name, meeting in self.__meetings.items():
-            self.__settings["Meetings"][meeting_name] = list(meeting.topics.values())
+            self.__settings["Meetings"][meeting_name] = meeting.get_topics()
 
         with open(os.path.join("Guilds", f"{self.__identification}.json"), 'w+', encoding="utf-8") as settings_file:
 
