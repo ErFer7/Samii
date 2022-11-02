@@ -18,6 +18,11 @@ import discord
 from discord.ext import commands
 
 from Source.meeting_management_cog import Meeting
+from Source.admin_cog import AdminCog
+from Source.help_cog import HelpCog
+from Source.settings_cog import SettingsCog
+from Source.event_cog import EventCog
+from Source.meeting_management_cog import MeetingManagementCog
 
 
 class CustomBot(commands.Bot):
@@ -33,12 +38,14 @@ class CustomBot(commands.Bot):
     __admins_id: int
     __token: str
     __activity_str: str
+    __ready: bool
 
     # Construtor --------------------------------------------------------------
     def __init__(self, command_prefix: str, help_command: Callable, name: str, version: str) -> None:
 
         super().__init__(command_prefix=command_prefix,
-                         help_command=help_command)
+                         help_command=help_command,
+                         intents=None)
 
         self.__name = name
         self.__version = version
@@ -46,6 +53,7 @@ class CustomBot(commands.Bot):
         self.__admins_id = []
         self.__token = ""
         self.__activity_str = ""
+        self.__ready = False
 
         print(f"[{datetime.now()}][System]: Initializing {self.__name} {self.__version}")
         print(f"[{datetime.now()}][System]: Initializing the RNG")
@@ -72,10 +80,28 @@ class CustomBot(commands.Bot):
                   "The file \"internal_settings.json\" should be in the system directory")
 
     # Métodos assícronos ------------------------------------------------------
-    async def setup(self) -> None:
+    async def setup_hook(self) -> None:
         '''
-        Setup do bot.
+        Pré-setup.
         '''
+
+        print(f"[{datetime.now()}][System]: Adding cogs...")
+
+        await self.add_cog(AdminCog(self))
+        await self.add_cog(HelpCog())
+        await self.add_cog(SettingsCog(self))
+        await self.add_cog(EventCog(self))
+        await self.add_cog(MeetingManagementCog(self))
+
+    async def prepare_data(self) -> None:
+        '''
+        Prepara os dados e a presença.
+        '''
+
+        if not self.__ready:
+            self.__ready = True
+        else:
+            return
 
         print(f"[{datetime.now()}][System]: Waiting...")
         await self.wait_until_ready()

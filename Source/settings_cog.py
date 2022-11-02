@@ -7,7 +7,6 @@ Módulo para a cog dos comandos de configurações.
 from datetime import datetime
 
 from discord.ext import commands
-from Source.bot_system import CustomBot
 
 from Source.utilities import DiscordUtilities
 
@@ -19,10 +18,10 @@ class SettingsCog(commands.Cog):
     '''
 
     # Atributos privados ------------------------------------------------------
-    __bot: CustomBot
+    __bot: None
 
     # Construtor --------------------------------------------------------------
-    def __init__(self, bot: CustomBot) -> None:
+    def __init__(self, bot) -> None:
 
         self.__bot = bot
 

@@ -15,11 +15,25 @@ class EventCog(commands.Cog):
     Cog dos eventos.
     '''
 
+    # Atributos privados ------------------------------------------------------
+    __bot: None
+
     # Construtor --------------------------------------------------------------
-    def __init__(self) -> None:
+    def __init__(self, bot) -> None:
+
         print(f"[{datetime.now()}][Event]: Event system initialized")
+        self.__bot = bot
 
     # Eventos -----------------------------------------------------------------
+    @commands.Cog.listener()
+    async def on_ready(self) -> None:
+        '''
+        Evento de "dados preparados".
+        '''
+
+        print(f"[{datetime.now()}][Event]: Ready")
+        await self.__bot.prepare_data()
+
     @commands.Cog.listener()
     async def on_message(self, message) -> None:
         '''

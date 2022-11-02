@@ -7,7 +7,6 @@ Módulo para a cog dos comandos de administrador.
 from datetime import datetime
 
 from discord.ext import commands
-from Source.bot_system import CustomBot
 
 from Source.utilities import DiscordUtilities
 
@@ -19,10 +18,10 @@ class AdminCog(commands.Cog):
     '''
 
     # Atributos privados ------------------------------------------------------
-    __bot: CustomBot
+    __bot: None
 
     # Construtor --------------------------------------------------------------
-    def __init__(self, bot: CustomBot):
+    def __init__(self, bot):
 
         self.__bot = bot
 
