@@ -4,7 +4,7 @@
 Testes de unidade.
 '''
 
-from Source.meeting_management_cog import Meeting
+from source.meeting import Meeting
 
 def test_create_meeting():
     '''
