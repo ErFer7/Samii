@@ -1,0 +1,3 @@
+[submodule "discpybotframe"]
+	path = discpybotframe
+	url = git@github.com:ErFer7/discpybotframe.git

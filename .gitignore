@@ -131,3 +131,4 @@ dmypy.json
 # Custom
 internal_settings.json
 /Guilds
+.vscode
