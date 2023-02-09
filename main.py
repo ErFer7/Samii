@@ -9,8 +9,6 @@ Bot: Samii
 import sys
 import asyncio
 
-from os.path import join
-
 from source.bot import Bot
 
 # Constantes
@@ -24,7 +22,6 @@ if sys.version_info[0] == 3 and sys.version_info[1] >= 8 and sys.platform.starts
 bot = Bot(command_prefix="++",
           help_command=None,
           name=NAME,
-          settings_file=join("system", "internal_settings.json"),
           version=VERSION)
 
 bot.run()

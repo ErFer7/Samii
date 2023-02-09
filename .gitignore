@@ -132,3 +132,4 @@ dmypy.json
 internal_settings.json
 guilds
 .vscode
+ffmpeg.exe

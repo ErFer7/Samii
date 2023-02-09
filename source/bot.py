@@ -34,11 +34,15 @@ class Bot(CustomBot):
                  command_prefix: str,
                  help_command: Callable,
                  name: str,
-                 settings_file: str,
                  version: str) -> None:
 
         intents = intents = discord.Intents.all()
-        super().__init__(command_prefix, help_command, name, settings_file, intents, version)
+        super().__init__(command_prefix,
+                         help_command,
+                         name,
+                         join("system", "internal_settings.json"),
+                         intents,
+                         version)
         self.voice_controller = VoiceController(self, join("system", "ffmpeg.exe"))
 
     # Métodos assícronos
