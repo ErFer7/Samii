@@ -16,7 +16,6 @@ from source.meeting_management_cog import MeetingManagementCog
 from discpybotframe.bot import CustomBot
 from discpybotframe.admin_cog import AdminCog
 from discpybotframe.help_cog import HelpCog
-from discpybotframe.event_cog import EventCog
 from discpybotframe.settings_cog import SettingsCog
 from discpybotframe.voice import VoiceController
 
@@ -27,6 +26,7 @@ class Bot(CustomBot):
     Bot customizado.
     '''
 
+    # TODO: Tornar privado
     # Atributo público
     voice_controller: VoiceController
 
@@ -57,7 +57,6 @@ class Bot(CustomBot):
         await self.add_cog(AdminCog(self, "Tchau!"))
         await self.add_cog(HelpCog(help_text))
         await self.add_cog(SettingsCog(self))
-        await self.add_cog(EventCog(self))
         await self.add_cog(MeetingManagementCog(self))
 
     def load_guilds(self) -> None:

@@ -13,7 +13,7 @@ from source.bot import Bot
 
 # Constantes
 NAME = "Samii"
-VERSION = "1.0"
+VERSION = "1.1"
 
 # Corrige o erro de saída temporáriamente.
 if sys.version_info[0] == 3 and sys.version_info[1] >= 8 and sys.platform.startswith('win'):

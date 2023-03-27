@@ -84,6 +84,12 @@ Samii (Sorry am I interrupting?) is a bot that helps with the time management an
 
 ---
 
-## 1.0
+## v1.0
 
 * Integration with discpybotframe.
+
+---
+
+## v1.1
+
+* Frequency control

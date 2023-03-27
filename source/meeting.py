@@ -14,6 +14,7 @@ class Meeting():
     Reunião.
     '''
 
+    # TODO: Tornar privado
     # Atributos públicos
     name: str
     topic_has_changed: bool
@@ -28,9 +29,10 @@ class Meeting():
     _topics: dict
     _last_topic_id: int
     _last_time: float
+    _members: list
+    _frequency_control: dict[list]
 
     def __init__(self, name: str) -> None:
-
         self.name = name
         self._total_time = 0
         self.topic_count = 0
@@ -42,6 +44,8 @@ class Meeting():
         self.topic_has_changed = False
         self._last_topic_id = 0
         self._last_time = None
+        self._members = []
+        self._frequency_control = {}
 
     def add_topic(self, topic: str, duration: int) -> None:
         '''
@@ -71,11 +75,10 @@ class Meeting():
         '''
 
         for topic_id, topic_tuple in self._topics.items():
-
             if topic_tuple[0] == topic:
-
                 self.topic_count -= 1
                 self._total_time -= topic_tuple[1]
+
                 del self._topics[topic_id]
                 break
 
@@ -108,11 +111,9 @@ class Meeting():
         self._last_time = current_time
 
         if self._cummulative_topic_time <= self._time_counter:
-
             self._current_topic_id_index += 1
 
             if self._current_topic_id_index < self.topic_count:
-
                 self.current_topic = self._topics[list(self._topics.keys())[self._current_topic_id_index]][0]
                 self._cummulative_topic_time += self._topics[list(self._topics.keys())
                                                                [self._current_topic_id_index]][1]
@@ -141,3 +142,25 @@ class Meeting():
         self.current_topic = ''
         self._time_counter = 0
         self.topic_has_changed = False
+
+    def add_member(self, member_id: int) -> None:
+        '''
+        Adiciona um membro.
+        '''
+
+        self._members.append(member_id)
+        print(self._members)
+
+    def remove_member(self, member_id: int) -> None:
+        '''
+        Remove um membro.
+        '''
+
+        self._members.remove(member_id)
+
+    def has_member(self, member_id: int) -> bool:
+        '''
+        Verifica se o membro existe.
+        '''
+
+        return member_id in self._members

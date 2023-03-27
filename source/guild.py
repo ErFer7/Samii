@@ -67,3 +67,10 @@ class Guild(CustomGuild):
         '''
 
         return name in self._meetings
+
+    def get_member(self, member_id: int):
+        '''
+        Retorna um membro.
+        '''
+
+        return self._guild.get_member(member_id)
