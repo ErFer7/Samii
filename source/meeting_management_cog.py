@@ -40,13 +40,13 @@ class MeetingManagementCog(commands.Cog):
         print(f"[{datetime.now()}][Meeting]: Meeting system initialized")
 
     # Eventos
-    @commands.Cog.listener()
-    async def on_voice_state_update(self, before, after) -> None:
-        '''
-        Evento de atualização de estado do canal de voz.
-        '''
+    # @commands.Cog.listener()
+    # async def on_voice_state_update(self, before, after) -> None:
+    #     '''
+    #     Evento de atualização de estado do canal de voz.
+    #     '''
 
-        print(f"[{datetime.now()}][Event]: The voice state changed")
+    #     print(f"[{datetime.now()}][Event]: The voice state changed")
 
     # Loops
     @tasks.loop(seconds=1.0)

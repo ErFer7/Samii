@@ -20,25 +20,31 @@ class Guild(CustomGuild):
     _meetings: dict
 
     def __init__(self, identification: int, bot) -> None:
-        super().__init__(identification, {"Meetings": {}}, bot)
-
         self._meetings = {}
 
-        for meeting_name, meeting_topics in self._stored_data["Meetings"].items():
+        super().__init__(identification, {"Meetings": {}}, bot)
+
+        print(f"[{datetime.now()}][System]: Custom guild initialization completed")
+
+    def set_loaded_data(self, settings: dict) -> None:
+        for meeting_name, meeting_topics in settings["Meetings"].items():
             self._meetings[meeting_name] = Meeting(meeting_name)
 
             for topic in meeting_topics:
                 self._meetings[meeting_name].add_topic(topic[0], topic[1])
 
-        print(f"[{datetime.now()}][System]: Custom guild initialization completed")
+    def prepare_data(self) -> dict:
 
-    def write_data(self, guilds_dir: str = "guilds") -> None:
-        self._stored_data["Meetings"].clear()
+        data = self.stored_data
 
-        for meeting_name, meeting in self._meetings.items():
-            self._stored_data["Meetings"][meeting_name] = meeting.get_topics()
+        try:
+            for meeting_name, meeting in self._meetings.items():
+                data["Meetings"][meeting_name] = meeting.get_topics()
+        except Exception as error:
+            print(f"[{datetime.now()}][System]: Error while preparing data for the guild {self._identification}")
+            print(f"[{datetime.now()}][System]: <Error>: {error}")
 
-        super().write_data(guilds_dir)
+        return data
 
     def add_meeting(self, name: str, meeting: Meeting) -> None:
         '''
@@ -73,4 +79,4 @@ class Guild(CustomGuild):
         Retorna um membro.
         '''
 
-        return self._guild.get_member(member_id)
+        return self.guild.get_member(member_id)

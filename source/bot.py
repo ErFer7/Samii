@@ -63,4 +63,4 @@ class Bot(CustomBot):
         print(f"[{datetime.now()}][System]: Loading guilds definitions")
 
         for guild in self.guilds:
-            self._guilds[str(guild.id)] = Guild(guild.id, self)
+            self.custom_guilds[str(guild.id)] = Guild(guild.id, self)
