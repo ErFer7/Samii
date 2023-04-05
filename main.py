@@ -9,7 +9,7 @@ Bot: Samii
 import sys
 import asyncio
 
-from source.bot import Bot
+from source.bot import CustomBot
 
 # Constantes
 NAME = "Samii"
@@ -19,9 +19,9 @@ VERSION = "1.1"
 if sys.version_info[0] == 3 and sys.version_info[1] >= 8 and sys.platform.startswith('win'):
     asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 
-bot = Bot(command_prefix="++",
-          help_command=None,
-          name=NAME,
-          version=VERSION)
+bot = CustomBot(command_prefix="++",
+                help_command=None,
+                name=NAME,
+                version=VERSION)
 
 bot.run()

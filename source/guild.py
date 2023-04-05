@@ -6,11 +6,11 @@ Módulo para os servers.
 
 from datetime import datetime
 
-from discpybotframe.guild import CustomGuild
+from discpybotframe.guild import Guild
 from source.meeting_management_cog import Meeting
 
 
-class Guild(CustomGuild):
+class CustomGuild(Guild):
 
     '''
     Definição de um server.
@@ -21,13 +21,10 @@ class Guild(CustomGuild):
 
     def __init__(self, identification: int, bot) -> None:
         self._meetings = {}
-
-        super().__init__(identification, {"Meetings": {}}, bot)
-
-        print(f"[{datetime.now()}][System]: Custom guild initialization completed")
+        super().__init__(identification, {'Meetings': {}}, bot)
 
     def set_loaded_data(self, settings: dict) -> None:
-        for meeting_name, meeting_topics in settings["Meetings"].items():
+        for meeting_name, meeting_topics in settings['Meetings'].items():
             self._meetings[meeting_name] = Meeting(meeting_name)
 
             for topic in meeting_topics:
@@ -39,10 +36,10 @@ class Guild(CustomGuild):
 
         try:
             for meeting_name, meeting in self._meetings.items():
-                data["Meetings"][meeting_name] = meeting.get_topics()
+                data['Meetings'][meeting_name] = meeting.get_topics()
         except Exception as error:
-            print(f"[{datetime.now()}][System]: Error while preparing data for the guild {self._identification}")
-            print(f"[{datetime.now()}][System]: <Error>: {error}")
+            self.bot.log('CustomGuild', f'Error while preparing data for the guild {self._identification}')
+            self.bot.log('CustomGuild', f'<Error>: {error}')
 
         return data
 
