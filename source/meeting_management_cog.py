@@ -39,16 +39,7 @@ class MeetingManagementCog(Cog):
 
         self.run_meeting.start()
 
-        print(f'[{datetime.now()}][Meeting]: Meeting system initialized')
-
-    # Eventos
-    # @commands.Cog.listener()
-    # async def on_voice_state_update(self, before, after) -> None:
-    #     '''
-    #     Evento de atualização de estado do canal de voz.
-    #     '''
-
-    #     print(f'[{datetime.now()}][Event]: The voice state changed')
+        self.bot.log('MeetingManagementCog', 'Meeting system initialized')
 
     # Loops
     @tasks.loop(seconds=1.0)
@@ -68,17 +59,17 @@ class MeetingManagementCog(Cog):
                 await self.bot.set_activity(f'{self._active_meeting.name}: {remaining_time:.0f} min')
 
             if self._active_meeting.topic_has_changed:
-                self.bot.voice_controller.play_audio(join('Audio', 'Topic Change Notification.wav')) # type: ignore
+                self.bot.voice_controller.play_audio(join('audio', 'Topic Change Notification.wav'))  # type: ignore
 
                 await DiscordUtilities.send_message(self._active_text_channel,
                                                     'Tópico atual',
                                                     self._active_meeting.current_topic,
                                                     self._active_meeting.name)
             if self._active_meeting.time_remaining() <= 0.0:
-                self._active_meeting.reset()
+                self._active_meeting.stop()
 
-                await self.bot.voice_controller.remove_all_members() # type: ignore
-                await self.bot.voice_controller.disconnect() # type: ignore
+                await self.bot.voice_controller.remove_all_members()  # type: ignore
+                await self.bot.voice_controller.disconnect()  # type: ignore
 
                 await DiscordUtilities.send_message(self._active_text_channel,
                                                     'Reunião encerrada',
@@ -91,10 +82,10 @@ class MeetingManagementCog(Cog):
 
                 await self.bot.set_activity()
             elif self._active_meeting.time_remaining() <= 10.0:
-                self.bot.voice_controller.play_audio(join('Audio', 'Final Notification.ogg')) # type: ignore
+                self.bot.voice_controller.play_audio(join('audio', 'Final Notification.ogg'))  # type: ignore
             elif self._active_meeting.time_remaining() <= 600.0 and not self._low_time_notified:
                 self._low_time_notified = True
-                self.bot.voice_controller.play_audio(join('Audio', 'Time Notification.wav')) # type: ignore
+                self.bot.voice_controller.play_audio(join('audio', 'Time Notification.wav'))  # type: ignore
 
                 await DiscordUtilities.send_message(self._active_text_channel,
                                                     'Notificação de tempo',
@@ -108,17 +99,17 @@ class MeetingManagementCog(Cog):
         Adiciona uma reunião.
         '''
 
-        print(f'[{datetime.now()}][Meeting]: <create_meeting> (Author: {ctx.author.name})')
+        self.bot.log('MeetingManagementCog', f'<create_meeting> (Author: {ctx.author.name})')
 
         if len(args) != 1:
             await DiscordUtilities.send_error_message(ctx, 'Especifique o nome da reunião!', 'meeting')
             return
 
-        if self.bot.get_custom_guild(ctx.guild.id).meeting_exist(args[0]):
+        if self.bot.get_custom_guild(ctx.guild.id).meeting_exist(args[0]):  # type: ignore
             await DiscordUtilities.send_error_message(ctx, 'A reunião já existe!', 'meeting')
             return
 
-        self.bot.get_custom_guild(ctx.guild.id).add_meeting(args[0], Meeting(args[0]))
+        self.bot.get_custom_guild(ctx.guild.id).add_meeting(args[0], Meeting(args[0]))  # type: ignore
 
         await DiscordUtilities.send_message(ctx,
                                             'Reunião adicionada',
@@ -131,17 +122,17 @@ class MeetingManagementCog(Cog):
         Remove uma reunião.
         '''
 
-        print(f'[{datetime.now()}][Meeting]: <remove_meeting> (Author: {ctx.author.name})')
+        self.bot.log('MeetingManagementCog', f'<remove_meeting> (Author: {ctx.author.name})')
 
         if len(args) != 1:
             await DiscordUtilities.send_error_message(ctx, 'Especifique o nome da reunião!', 'remove meeting')
             return
 
-        if not self.bot.get_custom_guild(ctx.guild.id).meeting_exist(args[0]):
+        if not self.bot.get_custom_guild(ctx.guild.id).meeting_exist(args[0]): # type: ignore
             await DiscordUtilities.send_error_message(ctx, 'A reunião não foi encontrada!', 'remove meeting')
             return
 
-        self.bot.get_custom_guild(ctx.guild.id).remove_meeting(args[0])
+        self.bot.get_custom_guild(ctx.guild.id).remove_meeting(args[0])  # type: ignore
 
         await DiscordUtilities.send_message(ctx,
                                             'Reunião removida',
@@ -154,17 +145,17 @@ class MeetingManagementCog(Cog):
         Inicia uma reunião.
         '''
 
-        print(f'[{datetime.now()}][Meeting]: <start_meeting> (Author: {ctx.author.name})')
+        self.bot.log('MeetingManagementCog', f'<start_meeting> (Author: {ctx.author.name})')
 
         if len(args) != 1:
             await DiscordUtilities.send_error_message(ctx, 'Especifique o nome da reunião!', 'start')
             return
 
-        if not self.bot.get_custom_guild(ctx.guild.id).meeting_exist(args[0]):
+        if not self.bot.get_custom_guild(ctx.guild.id).meeting_exist(args[0]):  # type: ignore
             await DiscordUtilities.send_error_message(ctx, 'A reunião não foi encontrada!', 'start')
             return
 
-        meeting = self.bot.get_custom_guild(ctx.guild.id).get_meeting(args[0])
+        meeting = self.bot.get_custom_guild(ctx.guild.id).get_meeting(args[0])  # type: ignore
 
         if meeting.topic_count == 0:
             await DiscordUtilities.send_error_message(ctx, 'A reunião não possui nenhum tópico!', 'start')
@@ -185,8 +176,8 @@ class MeetingManagementCog(Cog):
         self._active_meeting = meeting
         self._active_text_channel = text_channel
 
-        await self.bot.voice_controller.connect(voice_channel) # type: ignore
-        self.bot.voice_controller.play_audio(join('Audio', 'Topic Change Notification.wav')) # type: ignore
+        await self.bot.voice_controller.connect(voice_channel)  # type: ignore
+        self.bot.voice_controller.play_audio(join('audio', 'Topic Change Notification.wav'))  # type: ignore
 
         await DiscordUtilities.send_message(ctx,
                                             'Reunião iniciada',
@@ -205,14 +196,15 @@ class MeetingManagementCog(Cog):
         Para uma reunião.
         '''
 
-        print(f'[{datetime.now()}][Meeting]: <stop_meeting> (Author: {ctx.author.name})')
+        self.bot.log('MeetingManagementCog',
+                     f'[{datetime.now()}][Meeting]: <stop_meeting> (Author: {ctx.author.name})')
 
         if self._active_meeting is None:
             await DiscordUtilities.send_error_message(ctx, 'Não há nenhuma reunião em andamento!', 'stop')
             return
 
-        self._active_meeting.reset()
-        await self.bot.voice_controller.disconnect() # type: ignore
+        self._active_meeting.stop()
+        await self.bot.voice_controller.disconnect()  # type: ignore
 
         await DiscordUtilities.send_message(self._active_text_channel,
                                             'Reunião encerrada',
@@ -229,7 +221,7 @@ class MeetingManagementCog(Cog):
         Adiciona um tópico à uma reunião.
         '''
 
-        print(f'[{datetime.now()}][Meeting]: <add_topic> (Author: {ctx.author.name})')
+        self.bot.log('MeetingManagementCog', f'<add_topic> (Author: {ctx.author.name})')
 
         if len(args) != 3:
             await DiscordUtilities.send_error_message(ctx,
@@ -238,11 +230,11 @@ class MeetingManagementCog(Cog):
                                                       'add')
             return
 
-        if not self.bot.get_custom_guild(ctx.guild.id).meeting_exist(args[0]):
+        if not self.bot.get_custom_guild(ctx.guild.id).meeting_exist(args[0]):  # type: ignore
             await DiscordUtilities.send_error_message(ctx, 'A reunião não foi encontrada!', 'add')
             return
 
-        if self.bot.get_custom_guild(ctx.guild.id).get_meeting(args[0]).has_topic(args[1]):
+        if self.bot.get_custom_guild(ctx.guild.id).get_meeting(args[0]).has_topic(args[1]):  # type: ignore
             await DiscordUtilities.send_error_message(ctx, 'O tópico já existe!', 'add')
             return
 
@@ -250,7 +242,7 @@ class MeetingManagementCog(Cog):
             await DiscordUtilities.send_error_message(ctx, 'O tempo precisa ser um número inteiro positivo!', 'add')
             return
 
-        meeting = self.bot.get_custom_guild(ctx.guild.id).get_meeting(args[0])
+        meeting = self.bot.get_custom_guild(ctx.guild.id).get_meeting(args[0])  # type: ignore
 
         meeting.add_topic(args[1], int(args[2]) * 60)
 
@@ -266,7 +258,7 @@ class MeetingManagementCog(Cog):
         Remove um tópico.
         '''
 
-        print(f'[{datetime.now()}][Meeting]: <remove_topic> (Author: {ctx.author.name})')
+        self.bot.log('MeetingManagementCog', f'<remove_topic> (Author: {ctx.author.name})')
 
         if len(args) != 2:
             await DiscordUtilities.send_error_message(ctx,
@@ -274,15 +266,15 @@ class MeetingManagementCog(Cog):
                                                       'remove')
             return
 
-        if not self.bot.get_custom_guild(ctx.guild.id).meeting_exist(args[0]):
+        if not self.bot.get_custom_guild(ctx.guild.id).meeting_exist(args[0]):  # type: ignore
             await DiscordUtilities.send_error_message(ctx, 'A reunião não foi encontrada!', 'remove')
             return
 
-        if not self.bot.get_custom_guild(ctx.guild.id).get_meeting(args[0]).has_topic(args[1]):
+        if not self.bot.get_custom_guild(ctx.guild.id).get_meeting(args[0]).has_topic(args[1]):  # type: ignore
             await DiscordUtilities.send_error_message(ctx, 'O tópico não foi encontrado!', 'remove')
             return
 
-        self.bot.get_custom_guild(ctx.guild.id).get_meeting(args[0]).remove_topic(args[1])
+        self.bot.get_custom_guild(ctx.guild.id).get_meeting(args[0]).remove_topic(args[1])  # type: ignore
 
         await DiscordUtilities.send_message(ctx,
                                             'Tópico removido',
@@ -295,15 +287,15 @@ class MeetingManagementCog(Cog):
         Adciona um membro à uma reunião.
         '''
 
-        print(f'[{datetime.now()}][Meeting]: <add_member> (Author: {ctx.author.name})')
+        self.bot.log('MeetingManagementCog', f'<add_member> (Author: {ctx.author.name})')
 
         if len(args) != 2:
             await DiscordUtilities.send_error_message(ctx,
-                                                      'Especifique o nome da reunião e o nome do membro!',
+                                                      'Especifique o nome da reunião e mencione o membro!',
                                                       'add member')
             return
 
-        if not self.bot.get_custom_guild(ctx.guild.id).meeting_exist(args[0]):
+        if not self.bot.get_custom_guild(ctx.guild.id).meeting_exist(args[0]):  # type: ignore
             await DiscordUtilities.send_error_message(ctx, 'A reunião não foi encontrada!', 'add member')
             return
 
@@ -319,17 +311,17 @@ class MeetingManagementCog(Cog):
             await DiscordUtilities.send_error_message(ctx, 'Menção incorreta!', 'add member')
             return
 
-        if self.bot.get_custom_guild(ctx.guild.id).get_meeting(args[0]).has_member(member_id):
+        if self.bot.get_custom_guild(ctx.guild.id).get_meeting(args[0]).has_member(member_id):  # type: ignore
             await DiscordUtilities.send_error_message(ctx, 'O membro já foi adicionado!', 'add member')
             return
 
-        member = self.bot.get_guild(ctx.guild.id).get_member(member_id) # type: ignore
+        member = self.bot.get_guild(ctx.guild.id).get_member(member_id)  # type: ignore
 
         if member is None:
             await DiscordUtilities.send_error_message(ctx, 'O membro não foi encontrado!', 'add member')
             return
 
-        self.bot.get_custom_guild(ctx.guild.id).get_meeting(args[0]).add_member(member_id)
+        self.bot.get_custom_guild(ctx.guild.id).get_meeting(args[0]).add_member(member_id)  # type: ignore
 
         await DiscordUtilities.send_message(ctx,
                                             'Membro adicionado',
@@ -342,15 +334,15 @@ class MeetingManagementCog(Cog):
         Remove um membro de uma reunião.
         '''
 
-        print(f'[{datetime.now()}][Meeting]: <remove_member> (Author: {ctx.author.name})')
+        self.bot.log('MeetingManagementCog', f'<remove_member> (Author: {ctx.author.name})')
 
         if len(args) != 2:
             await DiscordUtilities.send_error_message(ctx,
-                                                      'Especifique o nome da reunião e o nome do membro!',
+                                                      'Especifique o nome da reunião e mencione o membro!',
                                                       'remove member')
             return
 
-        if not self.bot.get_custom_guild(ctx.guild.id).meeting_exist(args[0]):
+        if not self.bot.get_custom_guild(ctx.guild.id).meeting_exist(args[0]):  # type: ignore
             await DiscordUtilities.send_error_message(ctx, 'A reunião não foi encontrada!', 'remove member')
             return
 
@@ -366,13 +358,63 @@ class MeetingManagementCog(Cog):
             await DiscordUtilities.send_error_message(ctx, 'Menção incorreta!', 'remove member')
             return
 
-        if not self.bot.get_custom_guild(ctx.guild.id).get_meeting(args[0]).has_member(member_id):
+        if not self.bot.get_custom_guild(ctx.guild.id).get_meeting(args[0]).has_member(member_id):  # type: ignore
             await DiscordUtilities.send_error_message(ctx, 'O membro não foi encontrado!', 'remove member')
             return
 
-        self.bot.get_custom_guild(ctx.guild.id).get_meeting(args[0]).remove_member(member_id)
+        self.bot.get_custom_guild(ctx.guild.id).get_meeting(args[0]).remove_member(member_id)  # type: ignore
 
         await DiscordUtilities.send_message(ctx,
                                             'Membro removido',
                                             f'Membro removido da reunião {args[0]}',
                                             'remove member')
+
+    @commands.command(name='register_frequency', aliases=('registrar_frequencia', 'rf', 'chamada'))
+    async def register_frequency(self, ctx) -> None:
+        '''
+        Registra a frequência de um membro.
+        '''
+
+        self.bot.log('MeetingManagementCog', f'<register_frequency> (Author: {ctx.author.name})')
+
+        if self._active_meeting is None:
+            await DiscordUtilities.send_error_message(ctx, 'Nenhuma reunião está ativa!', 'register frequency')
+            return
+
+        members = await self.bot.voice_controller.get_members() # type: ignore
+        self._active_meeting.register_current_frequecy([member.id for member in members])
+
+        await DiscordUtilities.send_message(ctx,
+                                            'Frequência registrada',
+                                            f'Frequência registrada na reunião {self._active_meeting.name}',
+                                            'register frequency')
+
+    @commands.command(name='show_frequency', aliases=('mostrar_frequencia', 'mf', 'sf'))
+    async def show_frequency(self, ctx, *args) -> None:
+        '''
+        Mostra a frequência de uma reunião.
+        '''
+
+        self.bot.log('MeetingManagementCog', f'<show_frequency> (Author: {ctx.author.name})')
+
+        if len(args) != 1:
+            await DiscordUtilities.send_error_message(ctx, 'Especifique o nome da reunião!', 'show frequency')
+            return
+
+        if not self.bot.get_custom_guild(ctx.guild.id).meeting_exist(args[0]):  # type: ignore
+            await DiscordUtilities.send_error_message(ctx, 'A reunião não foi encontrada!', 'show frequency')
+            return
+
+        meeting = self.bot.get_custom_guild(ctx.guild.id).get_meeting(args[0])  # type: ignore
+        compiled_frequency = meeting.compile_frequency()
+
+        message = ''
+
+        for member_id, frequency in compiled_frequency.items():
+            member = self.bot.get_guild(ctx.guild.id).get_member(member_id) # type: ignore
+            message += f'**{member.name}**: {frequency}\n' # type: ignore
+
+        await DiscordUtilities.send_message(ctx,
+                                            'Frequência acumulada',
+                                            'Esta é a frequência acumulada dos membros na reunião:\n\n' + message,
+                                            'show frequency')

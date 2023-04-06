@@ -14,46 +14,97 @@ class Meeting():
     Reunião.
     '''
 
-    # TODO: Tornar privado
-    # Atributos públicos
-    name: str
-    topic_has_changed: bool
-    topic_count: int
-    current_topic: str
-
     # Atributos privados
-    _total_time: int
+    _name: str
+    _topic_has_changed: bool
+    _topic_count: int
+    _current_topic: str
+    _total_time: float
     _current_topic_id_index: int
     _cummulative_topic_time: int
-    _time_counter: int
+    _time_counter: float
     _topics: dict
     _last_topic_id: int
     _last_time: float
-    _members: list
-    _frequency_control: dict[list]
+    _members_id: list
+    _member_frequency: list
+    _current_member_frequency: list
+    _start_time: float
 
     def __init__(self, name: str) -> None:
-        self.name = name
-        self._total_time = 0
-        self.topic_count = 0
+        self._name = name
+        self._total_time = 0.0
+        self._topic_count = 0
         self._current_topic_id_index = 0
-        self.current_topic = ''
-        self._time_counter = 0
+        self._current_topic = ''
+        self._time_counter = 0.0
         self._cummulative_topic_time = 0
         self._topics = {}
-        self.topic_has_changed = False
+        self._topic_has_changed = False
         self._last_topic_id = 0
-        self._last_time = None
-        self._members = []
-        self._frequency_control = {}
+        self._last_time = 0.0
+        self._members_id = []
+        self._member_frequency = []
+        self._current_member_frequency = []
+        self._start_time = 0.0
 
+    # Getters e setters
+    @property
+    def name(self) -> str:
+        '''
+        Getter do nome da reunião.
+        '''
+
+        return self._name
+
+    @property
+    def topic_has_changed(self) -> bool:
+        '''
+        Getter do tópico atual.
+        '''
+
+        return self._topic_has_changed
+
+    @property
+    def topic_count(self) -> int:
+        '''
+        Getter da quantidade de tópicos.
+        '''
+
+        return self._topic_count
+
+    @property
+    def current_topic(self) -> str:
+        '''
+        Getter do tópico atual.
+        '''
+
+        return self._current_topic
+
+    @property
+    def members_id(self) -> list:
+        '''
+        Getter da lista de membros.
+        '''
+
+        return self._members_id
+
+    @property
+    def member_frequency(self) -> list:
+        '''
+        Getter da lista de frequência.
+        '''
+
+        return self._member_frequency
+
+    # Métodos
     def add_topic(self, topic: str, duration: int) -> None:
         '''
         Adiciona um novo tópico.
         '''
 
         self._topics[self._last_topic_id] = (topic, duration)
-        self.topic_count += 1
+        self._topic_count += 1
         self._total_time += duration
         self._last_topic_id += 1
 
@@ -76,7 +127,7 @@ class Meeting():
 
         for topic_id, topic_tuple in self._topics.items():
             if topic_tuple[0] == topic:
-                self.topic_count -= 1
+                self._topic_count -= 1
                 self._total_time -= topic_tuple[1]
 
                 del self._topics[topic_id]
@@ -94,16 +145,17 @@ class Meeting():
         Inicia a reunião.
         '''
 
-        self.current_topic = self._topics[list(self._topics.keys())[self._current_topic_id_index]][0]
+        self._current_topic = self._topics[list(self._topics.keys())[self._current_topic_id_index]][0]
         self._cummulative_topic_time = self._topics[list(self._topics.keys())[self._current_topic_id_index]][1]
-        self._last_time = time()
+        self._start_time = time()
+        self._last_time = self._start_time
 
     def update_time(self) -> None:
         '''
         Passa o tempo.
         '''
 
-        self.topic_has_changed = False
+        self._topic_has_changed = False
 
         current_time = time()
 
@@ -113,11 +165,11 @@ class Meeting():
         if self._cummulative_topic_time <= self._time_counter:
             self._current_topic_id_index += 1
 
-            if self._current_topic_id_index < self.topic_count:
-                self.current_topic = self._topics[list(self._topics.keys())[self._current_topic_id_index]][0]
+            if self._current_topic_id_index < self._topic_count:
+                self._current_topic = self._topics[list(self._topics.keys())[self._current_topic_id_index]][0]
                 self._cummulative_topic_time += self._topics[list(self._topics.keys())
-                                                               [self._current_topic_id_index]][1]
-                self.topic_has_changed = True
+                                                             [self._current_topic_id_index]][1]
+                self._topic_has_changed = True
 
     def get_total_time(self) -> timedelta:
         '''
@@ -126,41 +178,89 @@ class Meeting():
 
         return timedelta(seconds=self._total_time)
 
-    def time_remaining(self) -> int:
+    def time_remaining(self) -> float:
         '''
         Verifica o tempo restante.
         '''
 
         return self._total_time - self._time_counter
 
-    def reset(self) -> None:
+    def stop(self) -> None:
         '''
-        Reseta a reunião.
+        Finaliza a reunião.
         '''
 
+        self._member_frequency += self._current_member_frequency
+        self._current_member_frequency.clear()
         self._current_topic_id_index = 0
-        self.current_topic = ''
+        self._current_topic = ''
         self._time_counter = 0
-        self.topic_has_changed = False
+        self._topic_has_changed = False
 
     def add_member(self, member_id: int) -> None:
         '''
         Adiciona um membro.
         '''
 
-        self._members.append(member_id)
-        print(self._members)
+        self._members_id.append(member_id)
 
     def remove_member(self, member_id: int) -> None:
         '''
         Remove um membro.
         '''
 
-        self._members.remove(member_id)
+        self._members_id.remove(member_id)
+
+        # Remove a frequência histórica do membro
+        for frequency in self._member_frequency:
+            if frequency[1] == member_id:
+                self._member_frequency.remove(frequency)
+
+        # Remove a frequência atual do membro
+        for frequency in self._current_member_frequency:
+            if frequency[1] == member_id:
+                self._current_member_frequency.remove(frequency)
 
     def has_member(self, member_id: int) -> bool:
         '''
         Verifica se o membro existe.
         '''
 
-        return member_id in self._members
+        return member_id in self._members_id
+
+    def register_current_frequecy(self, members_id: list) -> None:
+        '''
+        Registra a frequência de uma reunião.
+        '''
+
+        registered_members_id = list(map(lambda x: x[1], self._current_member_frequency))
+
+        for member_id in members_id:
+            if member_id not in self._members_id or member_id in registered_members_id:
+                continue
+
+            self._current_member_frequency.append((self._start_time, member_id))
+
+    def add_frequency(self, frequency: tuple[float, int]) -> None:
+        '''
+        Adiciona uma frequência.
+        '''
+
+        self._member_frequency.append(frequency)
+
+    def compile_frequency(self) -> dict[int ,int]:
+        '''
+        Compila a frequência.
+        '''
+
+        compiled_frequency = {}
+
+        total_member_frequency = self._member_frequency + self._current_member_frequency
+
+        for _, member_id in total_member_frequency:
+            if member_id not in compiled_frequency:
+                compiled_frequency[member_id] = 1
+            else:
+                compiled_frequency[member_id] += 1
+
+        return compiled_frequency

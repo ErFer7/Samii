@@ -4,7 +4,6 @@
 Módulo que contém a lógica interna do bot.
 '''
 
-from datetime import datetime
 from os.path import join
 
 import discord
@@ -63,7 +62,7 @@ class CustomBot(Bot):
 
     # Métodos assícronos
     async def setup_hook(self) -> None:
-        print(f'[{datetime.now()}][System]: Adding cogs...')
+        self.log('CustomBot', 'Adding cogs...')
 
         help_text = ''
 
@@ -76,7 +75,7 @@ class CustomBot(Bot):
         await self.add_cog(MeetingManagementCog(self))
 
     def load_guilds(self) -> None:
-        print(f'[{datetime.now()}][System]: Loading guilds definitions')
+        self.log('CustomBot', 'Loading guilds definitions...')
 
         for guild in self.guilds:
             self.custom_guilds[str(guild.id)] = CustomGuild(guild.id, self)

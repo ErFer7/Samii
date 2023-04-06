@@ -47,3 +47,18 @@
 **++voice_channel / ++canal_voz / ++vch / ++cav**
 *Define o canal de voz princial. Ex:
 ++voice_channel [Nome do canal de voz]*
+
+**++add_member / ++adicionar_membro / ++addm / ++am**
+*Adiciona um membro na reunião para o controle de frequência. Ex:
+++add_member [Nome da reunião] @<Menção ao usuário>*
+
+**++remove_member / ++remover_membro / ++removem / ++rm**
+*Remove um membro da reunião. Ex:
+++remove_member [Nome da reunião] @<Menção ao usuário>*
+
+**++register_frequency / ++registrar_frequencia / ++rf / ++chamada**
+*Faz uma chamada com os membros da reunião.*
+
+**++show_frequency / ++mostrar_frequencia / ++mf / ++sf**
+*Exibe a frequência dos membros na reunião. Ex:
+++show_frequency [Nome da reunião]*

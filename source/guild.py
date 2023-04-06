@@ -4,8 +4,6 @@
 Módulo para os servers.
 '''
 
-from datetime import datetime
-
 from discpybotframe.guild import Guild
 from source.meeting_management_cog import Meeting
 
@@ -24,11 +22,17 @@ class CustomGuild(Guild):
         super().__init__(identification, {'Meetings': {}}, bot)
 
     def set_loaded_data(self, settings: dict) -> None:
-        for meeting_name, meeting_topics in settings['Meetings'].items():
+        for meeting_name, meeting_data in settings['Meetings'].items():
             self._meetings[meeting_name] = Meeting(meeting_name)
 
-            for topic in meeting_topics:
+            for topic in meeting_data['topics']:
                 self._meetings[meeting_name].add_topic(topic[0], topic[1])
+
+            for member_id in meeting_data['members_id']:
+                self._meetings[meeting_name].add_member(member_id)
+
+            for frequency in meeting_data['frequency_control']:
+                self._meetings[meeting_name].add_frequency(frequency)
 
     def prepare_data(self) -> dict:
 
@@ -36,7 +40,9 @@ class CustomGuild(Guild):
 
         try:
             for meeting_name, meeting in self._meetings.items():
-                data['Meetings'][meeting_name] = meeting.get_topics()
+                data['Meetings'][meeting_name] = {'topics': meeting.get_topics(),
+                                                  'members_id': meeting.members_id,
+                                                  'frequency_control': meeting.member_frequency}
         except Exception as error:
             self.bot.log('CustomGuild', f'Error while preparing data for the guild {self._identification}')
             self.bot.log('CustomGuild', f'<Error>: {error}')
