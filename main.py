@@ -20,7 +20,7 @@ if sys.version_info[0] == 3 and sys.version_info[1] >= 8 and sys.platform.starts
     asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 
 bot = CustomBot(command_prefix="++",
-                help_command=None,
+                help_command=None,  # type: ignore
                 name=NAME,
                 version=VERSION)
 
