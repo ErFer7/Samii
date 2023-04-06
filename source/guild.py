@@ -4,13 +4,11 @@
 Módulo para os servers.
 '''
 
-from datetime import datetime
-
-from discpybotframe.guild import CustomGuild
+from discpybotframe.guild import Guild
 from source.meeting_management_cog import Meeting
 
 
-class Guild(CustomGuild):
+class CustomGuild(Guild):
 
     '''
     Definição de um server.
@@ -20,25 +18,36 @@ class Guild(CustomGuild):
     _meetings: dict
 
     def __init__(self, identification: int, bot) -> None:
-        super().__init__(identification, {"Meetings": {}}, bot)
-
         self._meetings = {}
+        super().__init__(identification, {'Meetings': {}}, bot)
 
-        for meeting_name, meeting_topics in self._stored_data["Meetings"].items():
+    def set_loaded_data(self, settings: dict) -> None:
+        for meeting_name, meeting_data in settings['Meetings'].items():
             self._meetings[meeting_name] = Meeting(meeting_name)
 
-            for topic in meeting_topics:
+            for topic in meeting_data['topics']:
                 self._meetings[meeting_name].add_topic(topic[0], topic[1])
 
-        print(f"[{datetime.now()}][System]: Custom guild initialization completed")
+            for member_id in meeting_data['members_id']:
+                self._meetings[meeting_name].add_member(member_id)
 
-    def write_data(self, guilds_dir: str = "guilds") -> None:
-        self._stored_data["Meetings"].clear()
+            for frequency in meeting_data['frequency_control']:
+                self._meetings[meeting_name].add_frequency(frequency)
 
-        for meeting_name, meeting in self._meetings.items():
-            self._stored_data["Meetings"][meeting_name] = meeting.get_topics()
+    def prepare_data(self) -> dict:
 
-        super().write_data(guilds_dir)
+        data = self.stored_data
+
+        try:
+            for meeting_name, meeting in self._meetings.items():
+                data['Meetings'][meeting_name] = {'topics': meeting.get_topics(),
+                                                  'members_id': meeting.members_id,
+                                                  'frequency_control': meeting.member_frequency}
+        except Exception as error:
+            self.bot.log('CustomGuild', f'Error while preparing data for the guild {self._identification}')
+            self.bot.log('CustomGuild', f'<Error>: {error}')
+
+        return data
 
     def add_meeting(self, name: str, meeting: Meeting) -> None:
         '''
@@ -67,3 +76,10 @@ class Guild(CustomGuild):
         '''
 
         return name in self._meetings
+
+    def get_member(self, member_id: int):
+        '''
+        Retorna um membro.
+        '''
+
+        return self.guild.get_member(member_id)
