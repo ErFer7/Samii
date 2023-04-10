@@ -41,7 +41,7 @@ class CustomBot(Bot):
                          join('system', 'internal_settings.json'),
                          intents,
                          version)
-        self._voice_controller = VoiceController(self, join('system', 'ffmpeg.exe'))
+        self._voice_controller = VoiceController(self)
 
     # Getters e setters
     @property

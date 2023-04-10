@@ -87,3 +87,9 @@
 ## v1.1
 
 * Frequency control
+
+--
+
+## v1.1.1
+
+* Voice system changes.
