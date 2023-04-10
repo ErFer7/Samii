@@ -77,5 +77,6 @@ class CustomBot(Bot):
     def load_guilds(self) -> None:
         self.log('CustomBot', 'Loading guilds definitions...')
 
+        # TODO: Criar os arquivos se eles não existem
         for guild in self.guilds:
             self.custom_guilds[str(guild.id)] = CustomGuild(guild.id, self)
