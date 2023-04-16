@@ -133,3 +133,4 @@ internal_settings.json
 guilds
 .vscode
 ffmpeg.exe
+scripts/server_login.txt
