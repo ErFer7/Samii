@@ -5,6 +5,7 @@ Módulo de gerenciamento de reuniões.
 '''
 
 from __future__ import annotations
+from typing import TYPE_CHECKING
 
 from os.path import join
 from asyncio import tasks
@@ -19,6 +20,8 @@ from discpybotframe.cog import Cog
 
 from source.meeting import Meeting
 
+if TYPE_CHECKING:
+    from source.bot import CustomBot
 
 class MeetingManagementCog(Cog):
 
@@ -31,7 +34,7 @@ class MeetingManagementCog(Cog):
     _active_text_channel: discord.TextChannel | None
     _low_time_notified: bool
 
-    def __init__(self, bot) -> None:
+    def __init__(self, bot: CustomBot) -> None:
         super().__init__(bot)
         self._active_meeting = None
         self._active_text_channel = None
