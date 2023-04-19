@@ -93,3 +93,9 @@
 ## v1.1.1
 
 * Voice system changes.
+
+---
+
+## v1.2
+
+* Better logging system.
