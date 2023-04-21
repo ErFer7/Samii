@@ -15,67 +15,68 @@ class CustomGuild(Guild):
     '''
 
     # Atributos privados
-    _meetings: dict
+    _meetings_cache: dict
 
     def __init__(self, identification: int, bot) -> None:
-        self._meetings = {}
-        super().__init__(identification, {'Meetings': {}}, bot)
+        self._meetings_cache = {}
+        super().__init__(identification, bot)
 
-    def set_loaded_data(self, settings: dict) -> None:
-        for meeting_name, meeting_data in settings['Meetings'].items():
-            self._meetings[meeting_name] = Meeting(meeting_name)
+    def load_data(self) -> None:
 
-            for topic in meeting_data['topics']:
-                self._meetings[meeting_name].add_topic(topic[0], topic[1])
+        query = f'''
+                    SELECT Name FROM Meeting WHERE GuildID = {self._identification};
+                '''
 
-            for member_id in meeting_data['members_id']:
-                self._meetings[meeting_name].add_member(member_id)
+        response = self.bot.database_controller.cursor.execute(query)
 
-            for frequency in meeting_data['frequency_control']:
-                self._meetings[meeting_name].add_frequency(frequency)
-
-    def prepare_data(self) -> dict:
-
-        data = self.stored_data
-
-        try:
-            for meeting_name, meeting in self._meetings.items():
-                data['Meetings'][meeting_name] = {'topics': meeting.get_topics(),
-                                                  'members_id': meeting.members_id,
-                                                  'frequency_control': meeting.member_frequency}
-        except Exception as error:
-            self.bot.log('CustomGuild', f'Error while preparing data for the guild {self._identification}')
-            self.bot.log('CustomGuild', f'<Error>: {error}')
-
-        return data
+        for meeting_name in response.fetchall():
+            self._meetings_cache[meeting_name[0]] = Meeting(meeting_name[0], self.bot)  # type: ignore
 
     def add_meeting(self, name: str, meeting: Meeting) -> None:
         '''
         Adiciona uma reunião.
         '''
 
-        self._meetings[name] = meeting
+        self._meetings_cache[name] = meeting
+
+        query = f'''
+                    INSERT INTO Meeting (Name, GuildID)
+                    VALUES ('{name}', {self._identification});
+                '''
+
+        self.bot.database_controller.cursor.execute(query)
+        self.bot.database_controller.connection.commit()
 
     def remove_meeting(self, name: str) -> None:
         '''
         Remove uma reunião.
         '''
 
-        del self._meetings[name]
+        del self._meetings_cache[name]
+
+        query = f'''
+                    DELETE FROM Meeting WHERE Name = '{name}';
+                    DELETE FROM Topic WHERE MeetingName = '{name}';
+                    DELETE FROM User WHERE MeetingName = '{name}';
+                    DELETE FROM UserPresence WHERE MeetingName = '{name}';
+                '''
+
+        self.bot.database_controller.cursor.executescript(query)
+        self.bot.database_controller.connection.commit()
 
     def get_meeting(self, name: str) -> Meeting:
         '''
         Retorna uma reunião.
         '''
 
-        return self._meetings[name]
+        return self._meetings_cache[name]
 
     def meeting_exist(self, name: str) -> bool:
         '''
         Retorna verdadeiro se a reunião existir.
         '''
 
-        return name in self._meetings
+        return name in self._meetings_cache
 
     def get_member(self, member_id: int):
         '''
