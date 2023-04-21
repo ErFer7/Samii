@@ -134,3 +134,6 @@ guilds
 .vscode
 ffmpeg.exe
 scripts/server_login.txt
+logs
+*.sqlite-journal
+*.sqlite

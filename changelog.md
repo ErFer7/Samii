@@ -50,7 +50,7 @@
 ## v0.5
 
 * Source files moved to a source folder.
-* Admin messages are now in english.
+* Admin messages are now in English.
 
 ---
 
@@ -93,3 +93,11 @@
 ## v1.1.1
 
 * Voice system changes.
+
+---
+
+## v1.2
+
+* Better logging system.
+* Database added.
+* Several bugs fixed.

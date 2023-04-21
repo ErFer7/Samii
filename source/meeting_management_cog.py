@@ -104,6 +104,10 @@ class MeetingManagementCog(Cog):
 
         self.bot.log('MeetingManagementCog', f'<create_meeting> (Author: {ctx.author.name})')
 
+        if ctx.guild is None:
+            await DiscordUtilities.send_error_message(ctx, 'Este comando só pode ser usado em um servidor!', 'meeting')
+            return
+
         if len(args) != 1:
             await DiscordUtilities.send_error_message(ctx, 'Especifique o nome da reunião!', 'meeting')
             return
@@ -112,7 +116,7 @@ class MeetingManagementCog(Cog):
             await DiscordUtilities.send_error_message(ctx, 'A reunião já existe!', 'meeting')
             return
 
-        self.bot.get_custom_guild(ctx.guild.id).add_meeting(args[0], Meeting(args[0]))  # type: ignore
+        self.bot.get_custom_guild(ctx.guild.id).add_meeting(args[0], Meeting(args[0], self.bot))  # type: ignore
 
         await DiscordUtilities.send_message(ctx,
                                             'Reunião adicionada',
@@ -126,6 +130,10 @@ class MeetingManagementCog(Cog):
         '''
 
         self.bot.log('MeetingManagementCog', f'<remove_meeting> (Author: {ctx.author.name})')
+
+        if ctx.guild is None:
+            await DiscordUtilities.send_error_message(ctx, 'Este comando só pode ser usado em um servidor!', 'meeting')
+            return
 
         if len(args) != 1:
             await DiscordUtilities.send_error_message(ctx, 'Especifique o nome da reunião!', 'remove meeting')
@@ -149,6 +157,10 @@ class MeetingManagementCog(Cog):
         '''
 
         self.bot.log('MeetingManagementCog', f'<start_meeting> (Author: {ctx.author.name})')
+
+        if ctx.guild is None:
+            await DiscordUtilities.send_error_message(ctx, 'Este comando só pode ser usado em um servidor!', 'meeting')
+            return
 
         if len(args) != 1:
             await DiscordUtilities.send_error_message(ctx, 'Especifique o nome da reunião!', 'start')
@@ -202,6 +214,10 @@ class MeetingManagementCog(Cog):
         self.bot.log('MeetingManagementCog',
                      f'[{datetime.now()}][Meeting]: <stop_meeting> (Author: {ctx.author.name})')
 
+        if ctx.guild is None:
+            await DiscordUtilities.send_error_message(ctx, 'Este comando só pode ser usado em um servidor!', 'meeting')
+            return
+
         if self._active_meeting is None:
             await DiscordUtilities.send_error_message(ctx, 'Não há nenhuma reunião em andamento!', 'stop')
             return
@@ -225,6 +241,10 @@ class MeetingManagementCog(Cog):
         '''
 
         self.bot.log('MeetingManagementCog', f'<add_topic> (Author: {ctx.author.name})')
+
+        if ctx.guild is None:
+            await DiscordUtilities.send_error_message(ctx, 'Este comando só pode ser usado em um servidor!', 'meeting')
+            return
 
         if len(args) != 3:
             await DiscordUtilities.send_error_message(ctx,
@@ -263,6 +283,10 @@ class MeetingManagementCog(Cog):
 
         self.bot.log('MeetingManagementCog', f'<remove_topic> (Author: {ctx.author.name})')
 
+        if ctx.guild is None:
+            await DiscordUtilities.send_error_message(ctx, 'Este comando só pode ser usado em um servidor!', 'meeting')
+            return
+
         if len(args) != 2:
             await DiscordUtilities.send_error_message(ctx,
                                                       'Especifique o nome da reunião e o tópico a ser removido!',
@@ -291,6 +315,10 @@ class MeetingManagementCog(Cog):
         '''
 
         self.bot.log('MeetingManagementCog', f'<add_member> (Author: {ctx.author.name})')
+
+        if ctx.guild is None:
+            await DiscordUtilities.send_error_message(ctx, 'Este comando só pode ser usado em um servidor!', 'meeting')
+            return
 
         if len(args) != 2:
             await DiscordUtilities.send_error_message(ctx,
@@ -324,7 +352,7 @@ class MeetingManagementCog(Cog):
             await DiscordUtilities.send_error_message(ctx, 'O membro não foi encontrado!', 'add member')
             return
 
-        self.bot.get_custom_guild(ctx.guild.id).get_meeting(args[0]).add_member(member_id)  # type: ignore
+        self.bot.get_custom_guild(ctx.guild.id).get_meeting(args[0]).add_member(member_id, member.name)  # type: ignore
 
         await DiscordUtilities.send_message(ctx,
                                             'Membro adicionado',
@@ -338,6 +366,10 @@ class MeetingManagementCog(Cog):
         '''
 
         self.bot.log('MeetingManagementCog', f'<remove_member> (Author: {ctx.author.name})')
+
+        if ctx.guild is None:
+            await DiscordUtilities.send_error_message(ctx, 'Este comando só pode ser usado em um servidor!', 'meeting')
+            return
 
         if len(args) != 2:
             await DiscordUtilities.send_error_message(ctx,
@@ -380,6 +412,10 @@ class MeetingManagementCog(Cog):
 
         self.bot.log('MeetingManagementCog', f'<register_frequency> (Author: {ctx.author.name})')
 
+        if ctx.guild is None:
+            await DiscordUtilities.send_error_message(ctx, 'Este comando só pode ser usado em um servidor!', 'meeting')
+            return
+
         if self._active_meeting is None:
             await DiscordUtilities.send_error_message(ctx, 'Nenhuma reunião está ativa!', 'register frequency')
             return
@@ -399,6 +435,10 @@ class MeetingManagementCog(Cog):
         '''
 
         self.bot.log('MeetingManagementCog', f'<show_frequency> (Author: {ctx.author.name})')
+
+        if ctx.guild is None:
+            await DiscordUtilities.send_error_message(ctx, 'Este comando só pode ser usado em um servidor!', 'meeting')
+            return
 
         if len(args) != 1:
             await DiscordUtilities.send_error_message(ctx, 'Especifique o nome da reunião!', 'show frequency')

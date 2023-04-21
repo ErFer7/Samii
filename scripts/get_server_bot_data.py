@@ -4,7 +4,6 @@
 Obtém os dados do bot no servidor.
 '''
 
-import os
 import paramiko
 
 HOSTNAME = ''
@@ -23,15 +22,7 @@ sftp = ssh.open_sftp()
 # navigate to the system directory and download its contents
 sftp.get('Samii/system/help.txt', '../system/help.txt')
 sftp.get('Samii/system/internal_settings.json', '../system/internal_settings.json')
-
-# navigate to the guilds directory and download its contents
-REMOTE_DIR = 'Samii/guilds/'
-LOCAL_DIR = '../guilds'
-os.makedirs(LOCAL_DIR, exist_ok=True)
-for filename in sftp.listdir(REMOTE_DIR):
-    remote_path = REMOTE_DIR + filename  # Assumes that the OS is Linux
-    local_path = os.path.join(LOCAL_DIR, filename)
-    sftp.get(remote_path, local_path)
+sftp.get('Samii/database/SamiiDB.sqlite', '../database/SamiiDB.sqlite')
 
 # close the SFTP and SSH clients
 sftp.close()

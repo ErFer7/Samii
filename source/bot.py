@@ -39,6 +39,7 @@ class CustomBot(Bot):
                          help_command,
                          name,
                          join('system', 'internal_settings.json'),
+                         join('database', 'SamiiDB.sqlite'),
                          intents,
                          version)
         self._voice_controller = VoiceController(self)
@@ -74,9 +75,5 @@ class CustomBot(Bot):
         await self.add_cog(SettingsCog(self))
         await self.add_cog(MeetingManagementCog(self))
 
-    def load_guilds(self) -> None:
-        self.log('CustomBot', 'Loading guilds definitions...')
-
-        # TODO: Criar os arquivos se eles não existem
-        for guild in self.guilds:
-            self.custom_guilds[str(guild.id)] = CustomGuild(guild.id, self)
+    def add_guild(self, guild_id: int) -> None:
+        self.custom_guilds[str(guild_id)] = CustomGuild(guild_id, self)

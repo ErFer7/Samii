@@ -1,8 +1,10 @@
 # -*- codsing: utf-8 -*-
 
 '''
-Define os dados do bot no servidor.
+Obtém os logs do bot no servidor.
 '''
+
+from datetime import datetime
 
 import paramiko
 
@@ -19,10 +21,9 @@ ssh.connect(HOSTNAME, username=USERNAME)
 # create an SFTP client
 sftp = ssh.open_sftp()
 
-# navigate to the system directory and upload the contents of the local system directory
-sftp.put('../system/help.txt', 'Samii/system/help.txt')
-sftp.put('../system/internal_settings.json', 'Samii/system/internal_settings.json')
-sftp.put('../database/SamiiDB.sqlite', 'Samii/database/SamiiDB.sqlite')
+# The log file name will have the date of the day that the script is executed, not the day that the log was generated
+log_date = datetime.now().strftime('%Y-%m-%d_%H%M%S')
+sftp.get('Samii/nohup.out', f'../logs/{log_date}_log.txt')
 
 # close the SFTP and SSH clients
 sftp.close()
