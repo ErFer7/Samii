@@ -20,7 +20,6 @@ ssh.connect(HOSTNAME, username=USERNAME)
 sftp = ssh.open_sftp()
 
 # navigate to the system directory and upload the contents of the local system directory
-sftp.put('../system/help.txt', 'Samii/system/help.txt')
 sftp.put('../system/internal_settings.json', 'Samii/system/internal_settings.json')
 sftp.put('../database/SamiiDB.sqlite', 'Samii/database/SamiiDB.sqlite')
 

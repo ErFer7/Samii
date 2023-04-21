@@ -20,7 +20,6 @@ ssh.connect(HOSTNAME, username=USERNAME)
 sftp = ssh.open_sftp()
 
 # navigate to the system directory and download its contents
-sftp.get('Samii/system/help.txt', '../system/help.txt')
 sftp.get('Samii/system/internal_settings.json', '../system/internal_settings.json')
 sftp.get('Samii/database/SamiiDB.sqlite', '../database/SamiiDB.sqlite')
 
