@@ -19,7 +19,7 @@ ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 ssh.connect(HOSTNAME, username=USERNAME)
 
 # navigate to the Samii directory and execute git fetch and git pull
-stdin, stdout, stderr = ssh.exec_command('cd Samii && git fetch && git pull origin main --recurse-submodules')
+stdin, stdout, stderr = ssh.exec_command('cd Samii && git fetch && git pull --recurse-submodules')
 
 # print the output of the command
 print(f'STDOUT: {stdout.read().decode()}')
