@@ -224,6 +224,7 @@ class MeetingManagementCog(Cog):
 
         self._active_meeting.stop()
         await self.bot.voice_controller.disconnect()  # type: ignore
+        await self.bot.set_activity()
 
         await DiscordUtilities.send_message(self._active_text_channel,
                                             'Reunião encerrada',

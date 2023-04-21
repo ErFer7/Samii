@@ -101,3 +101,9 @@
 * Better logging system.
 * Database added.
 * Several bugs fixed.
+
+---
+
+## v1.2.1
+
+* Now the activity will change when the meeting is cancelled.
