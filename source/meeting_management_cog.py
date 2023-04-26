@@ -360,6 +360,43 @@ class MeetingManagementCog(Cog):
                                             f'Nome da reunião: {args[0]}\nNome do membro: {member.name}',
                                             'add member')
 
+    @commands.command(name='add_members', aliases=('adicionar_membros', 'addms', 'ams'))
+    async def add_members(self, ctx, *args) -> None:
+        '''
+        Adiciona todos os membros na reunião.
+        '''
+
+        self.bot.log('MeetingManagementCog', f'<add_members> (Author: {ctx.author.name})')
+
+        if ctx.guild is None:
+            await DiscordUtilities.send_error_message(ctx, 'Este comando só pode ser usado em um servidor!', 'meeting')
+            return
+
+        if len(args) != 1:
+            await DiscordUtilities.send_error_message(ctx,
+                                                      'Especifique o nome da reunião!',
+                                                      'add members')
+            return
+
+        custom_guild = self.bot.get_custom_guild(ctx.guild.id)
+
+        if not custom_guild.meeting_exist(args[0]):  # type: ignore
+            await DiscordUtilities.send_error_message(ctx, 'A reunião não foi encontrada!', 'add members')
+            return
+
+        member_count = 0
+        meeting = custom_guild.get_meeting(args[0])  # type: ignore
+
+        for member in ctx.guild.members:
+            if not meeting.has_member(member.id) and member != self.bot.user and member.bot is False:
+                meeting.add_member(member.id, member.name)
+                member_count += 1
+
+        await DiscordUtilities.send_message(ctx,
+                                            'Membros adicionados',
+                                            f'Nome da reunião: {args[0]}\nMembros adicionados: {member_count}',
+                                            'add members')
+
     @commands.command(name='remove_member', aliases=('remover_membro', 'removem', 'rm'))
     async def remove_member(self, ctx, *args) -> None:
         '''
@@ -378,7 +415,9 @@ class MeetingManagementCog(Cog):
                                                       'remove member')
             return
 
-        if not self.bot.get_custom_guild(ctx.guild.id).meeting_exist(args[0]):  # type: ignore
+        custom_guild = self.bot.get_custom_guild(ctx.guild.id)
+
+        if not custom_guild.meeting_exist(args[0]):  # type: ignore
             await DiscordUtilities.send_error_message(ctx, 'A reunião não foi encontrada!', 'remove member')
             return
 
@@ -394,11 +433,13 @@ class MeetingManagementCog(Cog):
             await DiscordUtilities.send_error_message(ctx, 'Menção incorreta!', 'remove member')
             return
 
-        if not self.bot.get_custom_guild(ctx.guild.id).get_meeting(args[0]).has_member(member_id):  # type: ignore
+        meeting = custom_guild.get_meeting(args[0])  # type: ignore
+
+        if not meeting.has_member(member_id):
             await DiscordUtilities.send_error_message(ctx, 'O membro não foi encontrado!', 'remove member')
             return
 
-        self.bot.get_custom_guild(ctx.guild.id).get_meeting(args[0]).remove_member(member_id)  # type: ignore
+        meeting.remove_member(member_id)
 
         await DiscordUtilities.send_message(ctx,
                                             'Membro removido',

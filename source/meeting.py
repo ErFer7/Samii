@@ -291,7 +291,7 @@ class Meeting():
 
         query = f'''
                     DELETE FROM User WHERE ID = '{member_id}' AND MeetingName = '{self._name}';
-                    DELETE FROM UserFrequency WHERE ID = '{member_id}' AND MeetingName = '{self._name}';
+                    DELETE FROM UserPresence WHERE userID = '{member_id}' AND MeetingName = '{self._name}';
                 '''
 
         self._bot.database_controller.cursor.executescript(query)

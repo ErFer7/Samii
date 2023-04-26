@@ -52,6 +52,10 @@
 *Adiciona um membro na reunião para o controle de frequência. Ex:
 ++add_member [Nome da reunião] @<Menção ao usuário>*
 
+**++add_members / ++adicionar_membros / ++addms / ++ams**
+*Adiciona todos os membros do servidor na reunião para o controle de frequência. Ex:
+++add_member [Nome da reunião]*
+
 **++remove_member / ++remover_membro / ++removem / ++rm**
 *Remove um membro da reunião. Ex:
 ++remove_member [Nome da reunião] @<Menção ao usuário>*

@@ -107,3 +107,10 @@
 ## v1.2.1
 
 * Now the activity will change when the meeting is cancelled.
+
+---
+
+## v1.3
+
+* Added the "add_members" command that adds all members in the guild to a meeting.
+* Bugfixes.
