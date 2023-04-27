@@ -95,6 +95,32 @@ class MeetingManagementCog(Cog):
                                                     'A reunião acaba em menos de 10 minutos!',
                                                     self._active_meeting.name)
 
+    # Métodos
+    async def validate_commands(self,
+                                ctx: commands.Context,
+                                args: tuple[str, ...] | None = None,
+                                require_adm: tuple[bool, str, str] = (False, '', ''),
+                                require_guild: tuple[bool, str, str] = (False, '', ''),
+                                require_text_channel: tuple[bool, str, str] = (False, '', ''),
+                                require_voice_channel: tuple[bool, str, str] = (False, '', ''),
+                                require_args: tuple[int, str, str] = (0, '', ''),
+                                require_args_type: tuple | None = None) -> bool:
+        '''
+        Valida os comandos.
+        '''
+
+        if not await super().validate_command(ctx,
+                                              args,
+                                              require_adm,
+                                              require_guild,
+                                              require_text_channel,
+                                              require_voice_channel,
+                                              require_args,
+                                              require_args_type):
+            return False
+
+        return True
+
     # Comandos
     @commands.command(name='meeting', aliases=('reunião', 'mt', 'rn'))
     async def create_meeting(self, ctx, *args) -> None:
@@ -501,5 +527,115 @@ class MeetingManagementCog(Cog):
 
         await DiscordUtilities.send_message(ctx,
                                             'Frequência acumulada',
-                                            'Esta é a frequência acumulada dos membros na reunião:\n\n' + message,
+                                            f'Esta é a frequência acumulada dos membros na reunião:\n\n{message}',
                                             'show frequency')
+
+    @commands.command(name='meetings', aliases=('reunioes', 'rns', 'mts'))
+    async def show_meetings(self, ctx) -> None:
+        '''
+        Exibe as reunioes de um servidor.
+        '''
+
+        self.bot.log('MeetingManagementCog', f'<show_meetings> (Author: {ctx.author.name})')
+
+        if ctx.guild is None:
+            await DiscordUtilities.send_error_message(ctx, 'Este comando só pode ser usado em um servidor!', 'meeting')
+            return
+
+        meetings = self.bot.get_custom_guild(ctx.guild.id).get_meeting_names() # type: ignore
+
+        if len(meetings) == 0: # type: ignore
+            await DiscordUtilities.send_message(ctx,
+                                    'Reuniões registradas',
+                                    'Não há reuniões registradas \'-\'',
+                                    'show meetings')
+            return
+
+        message = ''
+
+        for meeting in meetings: # type: ignore
+            message += f'**{meeting}**\n'
+
+        await DiscordUtilities.send_message(ctx,
+                                            'Reuniões registradas',
+                                            f'Estas são as reuniões registradas:\n\n{message}',
+                                            'show meetings')
+
+    @commands.command(name='members', aliases=('membros', 'ms'))
+    async def show_members(self, ctx, *args) -> None:
+        '''
+        Exibe os membros de uma reunião.
+        '''
+
+        self.bot.log('MeetingManagementCog', f'<show_members> (Author: {ctx.author.name})')
+
+        if ctx.guild is None:
+            await DiscordUtilities.send_error_message(ctx, 'Este comando só pode ser usado em um servidor!', 'meeting')
+            return
+
+        if len(args) != 1:
+            await DiscordUtilities.send_error_message(ctx, 'Especifique o nome da reunião!', 'show members')
+            return
+
+        if not self.bot.get_custom_guild(ctx.guild.id).meeting_exist(args[0]):  # type: ignore
+            await DiscordUtilities.send_error_message(ctx, 'A reunião não foi encontrada!', 'show members')
+            return
+
+        members_id = self.bot.get_custom_guild(ctx.guild.id).get_meeting(args[0]).members_id  # type: ignore
+
+        if len(members_id) == 0:
+            await DiscordUtilities.send_message(ctx,
+                                                'Membros registrados',
+                                                'Não há membros registrados \'-\'',
+                                                'show members')
+            return
+
+        message = ''
+
+        for member_id in members_id:
+            member = self.bot.get_guild(ctx.guild.id).get_member(member_id)  # type: ignore
+            message += f'**{member.name}**\n'  # type: ignore
+
+        await DiscordUtilities.send_message(ctx,
+                                            'Membros registrados',
+                                            f'Estes são os membros registrados:\n\n{message}',
+                                            'show members')
+
+    @commands.command(name='topics', aliases=('topicos', 'ts'))
+    async def show_topics(self, ctx, *args) -> None:
+        '''
+        Exibe os tópicos de uma reunião.
+        '''
+
+        self.bot.log('MeetingManagementCog', f'<show_topics> (Author: {ctx.author.name})')
+
+        if ctx.guild is None:
+            await DiscordUtilities.send_error_message(ctx, 'Este comando só pode ser usado em um servidor!', 'meeting')
+            return
+
+        if len(args) != 1:
+            await DiscordUtilities.send_error_message(ctx, 'Especifique o nome da reunião!', 'show topics')
+            return
+
+        if not self.bot.get_custom_guild(ctx.guild.id).meeting_exist(args[0]):  # type: ignore
+            await DiscordUtilities.send_error_message(ctx, 'A reunião não foi encontrada!', 'show topics')
+            return
+
+        topics = self.bot.get_custom_guild(ctx.guild.id).get_meeting(args[0]).get_topics()  # type: ignore
+
+        if len(topics) == 0:
+            await DiscordUtilities.send_message(ctx,
+                                                'Tópicos registrados',
+                                                'Não há tópicos registrados \'-\'',
+                                                'show topics')
+            return
+
+        message = ''
+
+        for topic in topics:
+            message += f'**{topic[0]}**: {topic[1] // 60} min\n'
+
+        await DiscordUtilities.send_message(ctx,
+                                            'Tópicos registrados',
+                                            f'Estes são os tópicos registrados:\n\n{message}',
+                                            'show topics')

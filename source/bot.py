@@ -32,16 +32,20 @@ class CustomBot(Bot):
                  command_prefix: str,
                  help_command: HelpCommand,
                  name: str,
-                 version: str) -> None:
-
+                 version: str,
+                 dev_env: bool) -> None:
         intents = intents = discord.Intents.all()
+
+        database_path = join('database', 'DevenvDB.sqlite') if dev_env else join('database', 'SamiiDB.sqlite')
+
         super().__init__(command_prefix,
                          help_command,
                          name,
                          join('system', 'internal_settings.json'),
-                         join('database', 'SamiiDB.sqlite'),
+                         database_path,
                          intents,
-                         version)
+                         version,
+                         dev_env)
         self._voice_controller = VoiceController(self)
 
     # Getters e setters

@@ -84,3 +84,10 @@ class CustomGuild(Guild):
         '''
 
         return self.guild.get_member(member_id)
+
+    def get_meeting_names(self) -> list[str]:
+        '''
+        Retorna uma lista de nomes de reuniões.
+        '''
+
+        return list(self._meetings_cache.keys())
