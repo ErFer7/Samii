@@ -21,19 +21,19 @@ class CustomGuild(Guild):
         self._meetings_cache = {}
         super().__init__(identification, bot)
 
-    def load_settings(self) -> None:
-        pass
-
     def load_data(self) -> None:
-
         query = f'''
                     SELECT Name FROM Meeting WHERE GuildID = {self._identification};
                 '''
 
-        response = self.bot.database_controller.cursor.execute(query)
+        response = self.bot.database_controller.cursor.execute(query)  # type: ignore
 
         for meeting_name in response.fetchall():
             self._meetings_cache[meeting_name[0]] = Meeting(meeting_name[0], self.bot)  # type: ignore
+
+    def remove_data(self) -> None:
+        for meeting_name in self.get_meeting_names():
+            self.remove_meeting(meeting_name)
 
     def add_meeting(self, name: str, meeting: Meeting) -> None:
         '''
@@ -47,8 +47,8 @@ class CustomGuild(Guild):
                     VALUES ('{name}', {self._identification});
                 '''
 
-        self.bot.database_controller.cursor.execute(query)
-        self.bot.database_controller.connection.commit()
+        self.bot.database_controller.cursor.execute(query)  # type: ignore
+        self.bot.database_controller.connection.commit()  # type: ignore
 
     def remove_meeting(self, name: str) -> None:
         '''
@@ -64,8 +64,8 @@ class CustomGuild(Guild):
                     DELETE FROM UserPresence WHERE MeetingName = '{name}';
                 '''
 
-        self.bot.database_controller.cursor.executescript(query)
-        self.bot.database_controller.connection.commit()
+        self.bot.database_controller.cursor.executescript(query)  # type: ignore
+        self.bot.database_controller.connection.commit()  # type: ignore
 
     def get_meeting(self, name: str) -> Meeting:
         '''

@@ -13,7 +13,7 @@ from source.bot import CustomBot
 
 # Constantes
 NAME = 'Samii'
-VERSION = '1.5'
+VERSION = '1.5.1'
 DEV_ENV = False
 
 if len(sys.argv) > 1:
