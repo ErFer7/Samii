@@ -121,3 +121,10 @@
 
 * Improved debug and development environment.
 * Listing commands added.
+
+---
+
+## v1.5
+
+* Validation improved.
+* Settings for text and voice channels removed.

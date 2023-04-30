@@ -15,7 +15,6 @@ from source.meeting_management_cog import MeetingManagementCog
 from discpybotframe.bot import Bot
 from discpybotframe.admin_cog import AdminCog
 from discpybotframe.help_cog import HelpCog
-from discpybotframe.settings_cog import SettingsCog
 from discpybotframe.voice import VoiceController
 
 
@@ -76,7 +75,6 @@ class CustomBot(Bot):
 
         await self.add_cog(AdminCog(self, 'Tchau!'))
         await self.add_cog(HelpCog(self, help_text))
-        await self.add_cog(SettingsCog(self))
         await self.add_cog(MeetingManagementCog(self))
 
     def add_guild(self, guild_id: int) -> None:

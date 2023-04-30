@@ -40,14 +40,6 @@
 *Remove um tópico de uma reunião. Ex:
 ++remove [Nome da reunião] [Nome do tópico]*
 
-**++channel / ++canal / ++ch / ++ca**
-*Define o canal de texto princial. Ex:
-++channel #[canal]*
-
-**++voice_channel / ++canal_voz / ++vch / ++cav**
-*Define o canal de voz princial. Ex:
-++voice_channel [Nome do canal de voz]*
-
 **++add_member / ++adicionar_membro / ++addm / ++am**
 *Adiciona um membro na reunião para o controle de frequência. Ex:
 ++add_member [Nome da reunião] @<Menção ao usuário>*

@@ -1,9 +1,5 @@
 CREATE TABLE Guild (
     ID BIGINT NOT NULL,
-    Name VARCHAR(255) NOT NULL,
-    MainTextChannelID BIGINT,
-    MainVoiceChannelID BIGINT,
-    Kick BOOLEAN NOT NULL,
     PRIMARY KEY (ID)
 );
 
@@ -23,7 +19,6 @@ CREATE TABLE Topic (
 CREATE TABLE User (
     ID INT NOT NULL,
     MeetingName VARCHAR(255) NOT NULL,
-    Username VARCHAR(255) NOT NULL,
     FOREIGN KEY (MeetingName) REFERENCES Meeting(Name)
 );
 

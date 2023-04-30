@@ -21,6 +21,9 @@ class CustomGuild(Guild):
         self._meetings_cache = {}
         super().__init__(identification, bot)
 
+    def load_settings(self) -> None:
+        pass
+
     def load_data(self) -> None:
 
         query = f'''
@@ -71,7 +74,7 @@ class CustomGuild(Guild):
 
         return self._meetings_cache[name]
 
-    def meeting_exist(self, name: str) -> bool:
+    def has_meeting(self, name: str) -> bool:
         '''
         Retorna verdadeiro se a reunião existir.
         '''

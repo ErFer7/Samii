@@ -257,7 +257,7 @@ class Meeting():
         self._time_counter = 0
         self._topic_has_changed = False
 
-    def add_member(self, member_id: int, member_username: str) -> None:
+    def add_member(self, member_id: int) -> None:
         '''
         Adiciona um membro.
         '''
@@ -265,8 +265,8 @@ class Meeting():
         self._members_id.append(member_id)
 
         query = f'''
-                    INSERT INTO User (ID, MeetingName, Username)
-                    VALUES ({member_id}, '{self._name}', '{member_username}');
+                    INSERT INTO User (ID, MeetingName)
+                    VALUES ({member_id}, '{self._name}');
                 '''
 
         self._bot.database_controller.cursor.execute(query)

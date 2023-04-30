@@ -19,6 +19,7 @@ from discpybotframe.utilities import DiscordUtilities
 from discpybotframe.cog import Cog
 
 from source.meeting import Meeting
+from source.validation import CustomValidator, ArgumentFormat, ArgumentType
 
 if TYPE_CHECKING:
     from source.bot import CustomBot
@@ -95,32 +96,6 @@ class MeetingManagementCog(Cog):
                                                     'A reunião acaba em menos de 10 minutos!',
                                                     self._active_meeting.name)
 
-    # Métodos
-    async def validate_commands(self,
-                                ctx: commands.Context,
-                                args: tuple[str, ...] | None = None,
-                                require_adm: tuple[bool, str, str] = (False, '', ''),
-                                require_guild: tuple[bool, str, str] = (False, '', ''),
-                                require_text_channel: tuple[bool, str, str] = (False, '', ''),
-                                require_voice_channel: tuple[bool, str, str] = (False, '', ''),
-                                require_args: tuple[int, str, str] = (0, '', ''),
-                                require_args_type: tuple | None = None) -> bool:
-        '''
-        Valida os comandos.
-        '''
-
-        if not await super().validate_command(ctx,
-                                              args,
-                                              require_adm,
-                                              require_guild,
-                                              require_text_channel,
-                                              require_voice_channel,
-                                              require_args,
-                                              require_args_type):
-            return False
-
-        return True
-
     # Comandos
     @commands.command(name='meeting', aliases=('reunião', 'mt', 'rn'))
     async def create_meeting(self, ctx, *args) -> None:
@@ -130,16 +105,11 @@ class MeetingManagementCog(Cog):
 
         self.bot.log('MeetingManagementCog', f'<create_meeting> (Author: {ctx.author.name})')
 
-        if ctx.guild is None:
-            await DiscordUtilities.send_error_message(ctx, 'Este comando só pode ser usado em um servidor!', 'meeting')
-            return
+        validator = CustomValidator(self.bot, ctx, 'meeting', args=args)
+        validator.require_conditions(guild=True, meeting=False)
+        validator.require_arg_format((ArgumentFormat(ArgumentType.STRING, length_range=(1, 255)),))
 
-        if len(args) != 1:
-            await DiscordUtilities.send_error_message(ctx, 'Especifique o nome da reunião!', 'meeting')
-            return
-
-        if self.bot.get_custom_guild(ctx.guild.id).meeting_exist(args[0]):  # type: ignore
-            await DiscordUtilities.send_error_message(ctx, 'A reunião já existe!', 'meeting')
+        if not await validator.validate_command():
             return
 
         self.bot.get_custom_guild(ctx.guild.id).add_meeting(args[0], Meeting(args[0], self.bot))  # type: ignore
@@ -157,16 +127,11 @@ class MeetingManagementCog(Cog):
 
         self.bot.log('MeetingManagementCog', f'<remove_meeting> (Author: {ctx.author.name})')
 
-        if ctx.guild is None:
-            await DiscordUtilities.send_error_message(ctx, 'Este comando só pode ser usado em um servidor!', 'meeting')
-            return
+        validator = CustomValidator(self.bot, ctx, 'remove meeting', args=args)
+        validator.require_conditions(guild=True, meeting=True)
+        validator.require_arg_format((ArgumentFormat(ArgumentType.STRING, length_range=(1, 255)),))
 
-        if len(args) != 1:
-            await DiscordUtilities.send_error_message(ctx, 'Especifique o nome da reunião!', 'remove meeting')
-            return
-
-        if not self.bot.get_custom_guild(ctx.guild.id).meeting_exist(args[0]): # type: ignore
-            await DiscordUtilities.send_error_message(ctx, 'A reunião não foi encontrada!', 'remove meeting')
+        if not await validator.validate_command():
             return
 
         self.bot.get_custom_guild(ctx.guild.id).remove_meeting(args[0])  # type: ignore
@@ -177,47 +142,34 @@ class MeetingManagementCog(Cog):
                                             'remove meeting')
 
     @commands.command(name='start', aliases=('iniciar', 'st', 'in'))
-    async def start_meeting(self, ctx, *args) -> None:
+    async def start_meeting(self, ctx: commands.Context, *args) -> None:
         '''
         Inicia uma reunião.
         '''
 
         self.bot.log('MeetingManagementCog', f'<start_meeting> (Author: {ctx.author.name})')
 
-        if ctx.guild is None:
-            await DiscordUtilities.send_error_message(ctx, 'Este comando só pode ser usado em um servidor!', 'meeting')
-            return
+        validator = CustomValidator(self.bot, ctx, 'remove meeting', args=args)
+        validator.require_conditions(guild=True,
+                                     meeting=True,
+                                     require_topics=True,
+                                     require_member_in_voice_channel=True)
+        validator.require_arg_format((ArgumentFormat(ArgumentType.STRING, length_range=(1, 255)),))
 
-        if len(args) != 1:
-            await DiscordUtilities.send_error_message(ctx, 'Especifique o nome da reunião!', 'start')
-            return
-
-        if not self.bot.get_custom_guild(ctx.guild.id).meeting_exist(args[0]):  # type: ignore
-            await DiscordUtilities.send_error_message(ctx, 'A reunião não foi encontrada!', 'start')
-            return
-
-        meeting = self.bot.get_custom_guild(ctx.guild.id).get_meeting(args[0])  # type: ignore
-
-        if meeting.topic_count == 0:
-            await DiscordUtilities.send_error_message(ctx, 'A reunião não possui nenhum tópico!', 'start')
+        if not await validator.validate_command():
             return
 
         if self._active_meeting is not None:
             await DiscordUtilities.send_error_message(ctx, 'Uma reunião já está em andamento!', 'start')
             return
 
+        meeting = self.bot.get_custom_guild(ctx.guild.id).get_meeting(args[0])  # type: ignore
         meeting.start()
 
-        text_channel = self.bot.get_custom_guild(ctx.guild.id).get_main_channel()
-        voice_channel = self.bot.get_custom_guild(ctx.guild.id).get_voice_channel()
-
-        if text_channel is None:
-            text_channel = ctx.channel
-
         self._active_meeting = meeting
-        self._active_text_channel = text_channel
+        self._active_text_channel = ctx.channel  # type: ignore
 
-        await self.bot.voice_controller.connect(voice_channel)  # type: ignore
+        await self.bot.voice_controller.connect(ctx.author.voice.channel)  # type: ignore
         self.bot.voice_controller.play_audio(join('audio', 'Topic Change Notification.wav'))  # type: ignore
 
         await DiscordUtilities.send_message(ctx,
@@ -226,7 +178,7 @@ class MeetingManagementCog(Cog):
                                             f'Duração da reunião: {meeting.get_total_time()}',
                                             'start')
 
-        await DiscordUtilities.send_message(text_channel,
+        await DiscordUtilities.send_message(ctx,
                                             'Tópicos',
                                             f'O primeiro tópico é: {meeting.current_topic}\n',
                                             'start')
@@ -240,8 +192,10 @@ class MeetingManagementCog(Cog):
         self.bot.log('MeetingManagementCog',
                      f'[{datetime.now()}][Meeting]: <stop_meeting> (Author: {ctx.author.name})')
 
-        if ctx.guild is None:
-            await DiscordUtilities.send_error_message(ctx, 'Este comando só pode ser usado em um servidor!', 'meeting')
+        validator = CustomValidator(self.bot, ctx, 'stop meeting')
+        validator.require_conditions(guild=True)
+
+        if not await validator.validate_command():
             return
 
         if self._active_meeting is None:
@@ -269,31 +223,18 @@ class MeetingManagementCog(Cog):
 
         self.bot.log('MeetingManagementCog', f'<add_topic> (Author: {ctx.author.name})')
 
-        if ctx.guild is None:
-            await DiscordUtilities.send_error_message(ctx, 'Este comando só pode ser usado em um servidor!', 'meeting')
-            return
+        validator = CustomValidator(self.bot, ctx, 'add topic', args=args)
+        validator.require_conditions(guild=True,
+                                     meeting=True,
+                                     topic=False)
+        validator.require_arg_format((ArgumentFormat(ArgumentType.STRING, length_range=(1, 255)),
+                                      ArgumentFormat(ArgumentType.STRING, length_range=(1, 255)),
+                                      ArgumentFormat(ArgumentType.INTEGER, (1, 2147483647))))
 
-        if len(args) != 3:
-            await DiscordUtilities.send_error_message(ctx,
-                                                      'Especifique o nome da reunião, '
-                                                      'nome do tópico e a duração do tópico em minutos!',
-                                                      'add')
-            return
-
-        if not self.bot.get_custom_guild(ctx.guild.id).meeting_exist(args[0]):  # type: ignore
-            await DiscordUtilities.send_error_message(ctx, 'A reunião não foi encontrada!', 'add')
-            return
-
-        if self.bot.get_custom_guild(ctx.guild.id).get_meeting(args[0]).has_topic(args[1]):  # type: ignore
-            await DiscordUtilities.send_error_message(ctx, 'O tópico já existe!', 'add')
-            return
-
-        if not args[2].isnumeric():
-            await DiscordUtilities.send_error_message(ctx, 'O tempo precisa ser um número inteiro positivo!', 'add')
+        if not await validator.validate_command():
             return
 
         meeting = self.bot.get_custom_guild(ctx.guild.id).get_meeting(args[0])  # type: ignore
-
         meeting.add_topic(args[1], int(args[2]) * 60)
 
         await DiscordUtilities.send_message(ctx,
@@ -310,25 +251,18 @@ class MeetingManagementCog(Cog):
 
         self.bot.log('MeetingManagementCog', f'<remove_topic> (Author: {ctx.author.name})')
 
-        if ctx.guild is None:
-            await DiscordUtilities.send_error_message(ctx, 'Este comando só pode ser usado em um servidor!', 'meeting')
+        validator = CustomValidator(self.bot, ctx, 'remove topic', args=args)
+        validator.require_conditions(guild=True,
+                                     meeting=True,
+                                     topic=True)
+        validator.require_arg_format((ArgumentFormat(ArgumentType.STRING, length_range=(1, 255)),
+                                      ArgumentFormat(ArgumentType.STRING, length_range=(1, 255))))
+
+        if not await validator.validate_command():
             return
 
-        if len(args) != 2:
-            await DiscordUtilities.send_error_message(ctx,
-                                                      'Especifique o nome da reunião e o tópico a ser removido!',
-                                                      'remove')
-            return
-
-        if not self.bot.get_custom_guild(ctx.guild.id).meeting_exist(args[0]):  # type: ignore
-            await DiscordUtilities.send_error_message(ctx, 'A reunião não foi encontrada!', 'remove')
-            return
-
-        if not self.bot.get_custom_guild(ctx.guild.id).get_meeting(args[0]).has_topic(args[1]):  # type: ignore
-            await DiscordUtilities.send_error_message(ctx, 'O tópico não foi encontrado!', 'remove')
-            return
-
-        self.bot.get_custom_guild(ctx.guild.id).get_meeting(args[0]).remove_topic(args[1])  # type: ignore
+        meeting = self.bot.get_custom_guild(ctx.guild.id).get_meeting(args[0])  # type: ignore
+        meeting.remove_topic(args[1])
 
         await DiscordUtilities.send_message(ctx,
                                             'Tópico removido',
@@ -343,47 +277,26 @@ class MeetingManagementCog(Cog):
 
         self.bot.log('MeetingManagementCog', f'<add_member> (Author: {ctx.author.name})')
 
-        if ctx.guild is None:
-            await DiscordUtilities.send_error_message(ctx, 'Este comando só pode ser usado em um servidor!', 'meeting')
+        validator = CustomValidator(self.bot, ctx, 'add member', args=args)
+        validator.require_conditions(guild=True,
+                                     meeting=True,
+                                     member=True,
+                                     require_member_in_meeting=False)
+        validator.require_arg_format((ArgumentFormat(ArgumentType.STRING, length_range=(1, 255)),
+                                      ArgumentFormat(ArgumentType.STRING, length_range=(1, 255))))
+
+        if not await validator.validate_command():
             return
 
-        if len(args) != 2:
-            await DiscordUtilities.send_error_message(ctx,
-                                                      'Especifique o nome da reunião e mencione o membro!',
-                                                      'add member')
-            return
-
-        if not self.bot.get_custom_guild(ctx.guild.id).meeting_exist(args[0]):  # type: ignore
-            await DiscordUtilities.send_error_message(ctx, 'A reunião não foi encontrada!', 'add member')
-            return
-
-        member_id = None
-
-        try:
-            mention = ctx.message.mentions[0].mention
-            if len(mention) != 21:
-                raise TypeError
-
-            member_id = int(ctx.message.mentions[0].mention[2:-1])
-        except TypeError:
-            await DiscordUtilities.send_error_message(ctx, 'Menção incorreta!', 'add member')
-            return
-
-        if self.bot.get_custom_guild(ctx.guild.id).get_meeting(args[0]).has_member(member_id):  # type: ignore
-            await DiscordUtilities.send_error_message(ctx, 'O membro já foi adicionado!', 'add member')
-            return
-
+        member_id = int(ctx.message.mentions[0].mention[2:-1])
         member = self.bot.get_guild(ctx.guild.id).get_member(member_id)  # type: ignore
 
-        if member is None:
-            await DiscordUtilities.send_error_message(ctx, 'O membro não foi encontrado!', 'add member')
-            return
-
-        self.bot.get_custom_guild(ctx.guild.id).get_meeting(args[0]).add_member(member_id, member.name)  # type: ignore
+        meeting = self.bot.get_custom_guild(ctx.guild.id).get_meeting(args[0])  # type: ignore
+        meeting.add_member(member_id, member.name)  # type: ignore
 
         await DiscordUtilities.send_message(ctx,
                                             'Membro adicionado',
-                                            f'Nome da reunião: {args[0]}\nNome do membro: {member.name}',
+                                            f'Nome da reunião: {args[0]}\nNome do membro: {member.name}',# type: ignore
                                             'add member')
 
     @commands.command(name='add_members', aliases=('adicionar_membros', 'addms', 'ams'))
@@ -394,24 +307,16 @@ class MeetingManagementCog(Cog):
 
         self.bot.log('MeetingManagementCog', f'<add_members> (Author: {ctx.author.name})')
 
-        if ctx.guild is None:
-            await DiscordUtilities.send_error_message(ctx, 'Este comando só pode ser usado em um servidor!', 'meeting')
+        validator = CustomValidator(self.bot, ctx, 'add members', args=args)
+        validator.require_conditions(guild=True,
+                                     meeting=True)
+        validator.require_arg_format((ArgumentFormat(ArgumentType.STRING, length_range=(1, 255)),))
+
+        if not await validator.validate_command():
             return
 
-        if len(args) != 1:
-            await DiscordUtilities.send_error_message(ctx,
-                                                      'Especifique o nome da reunião!',
-                                                      'add members')
-            return
-
-        custom_guild = self.bot.get_custom_guild(ctx.guild.id)
-
-        if not custom_guild.meeting_exist(args[0]):  # type: ignore
-            await DiscordUtilities.send_error_message(ctx, 'A reunião não foi encontrada!', 'add members')
-            return
-
+        meeting = self.bot.get_custom_guild(ctx.guild.id).get_meeting(args[0])  # type: ignore
         member_count = 0
-        meeting = custom_guild.get_meeting(args[0])  # type: ignore
 
         for member in ctx.guild.members:
             if not meeting.has_member(member.id) and member != self.bot.user and member.bot is False:
@@ -431,39 +336,19 @@ class MeetingManagementCog(Cog):
 
         self.bot.log('MeetingManagementCog', f'<remove_member> (Author: {ctx.author.name})')
 
-        if ctx.guild is None:
-            await DiscordUtilities.send_error_message(ctx, 'Este comando só pode ser usado em um servidor!', 'meeting')
+        validator = CustomValidator(self.bot, ctx, 'remove member', args=args)
+        validator.require_conditions(guild=True,
+                                     meeting=True,
+                                     member=True,
+                                     require_member_in_meeting=True)
+        validator.require_arg_format((ArgumentFormat(ArgumentType.STRING, length_range=(1, 255)),
+                                      ArgumentFormat(ArgumentType.STRING, length_range=(1, 255))))
+
+        if not await validator.validate_command():
             return
 
-        if len(args) != 2:
-            await DiscordUtilities.send_error_message(ctx,
-                                                      'Especifique o nome da reunião e mencione o membro!',
-                                                      'remove member')
-            return
-
-        custom_guild = self.bot.get_custom_guild(ctx.guild.id)
-
-        if not custom_guild.meeting_exist(args[0]):  # type: ignore
-            await DiscordUtilities.send_error_message(ctx, 'A reunião não foi encontrada!', 'remove member')
-            return
-
-        member_id = None
-
-        try:
-            mention = ctx.message.mentions[0].mention
-            if len(mention) != 21:
-                raise TypeError
-
-            member_id = int(ctx.message.mentions[0].mention[2:-1])
-        except TypeError:
-            await DiscordUtilities.send_error_message(ctx, 'Menção incorreta!', 'remove member')
-            return
-
-        meeting = custom_guild.get_meeting(args[0])  # type: ignore
-
-        if not meeting.has_member(member_id):
-            await DiscordUtilities.send_error_message(ctx, 'O membro não foi encontrado!', 'remove member')
-            return
+        meeting = self.bot.get_custom_guild(ctx.guild.id).get_meeting(args[0])  # type: ignore
+        member_id = int(ctx.message.mentions[0].mention[2:-1])
 
         meeting.remove_member(member_id)
 
@@ -480,8 +365,10 @@ class MeetingManagementCog(Cog):
 
         self.bot.log('MeetingManagementCog', f'<register_frequency> (Author: {ctx.author.name})')
 
-        if ctx.guild is None:
-            await DiscordUtilities.send_error_message(ctx, 'Este comando só pode ser usado em um servidor!', 'meeting')
+        validator = CustomValidator(self.bot, ctx, 'register frequency')
+        validator.require_conditions(guild=True)
+
+        if not await validator.validate_command():
             return
 
         if self._active_meeting is None:
@@ -504,16 +391,12 @@ class MeetingManagementCog(Cog):
 
         self.bot.log('MeetingManagementCog', f'<show_frequency> (Author: {ctx.author.name})')
 
-        if ctx.guild is None:
-            await DiscordUtilities.send_error_message(ctx, 'Este comando só pode ser usado em um servidor!', 'meeting')
-            return
+        validator = CustomValidator(self.bot, ctx, 'show frequency', args=args)
+        validator.require_conditions(guild=True,
+                                     meeting=True)
+        validator.require_arg_format((ArgumentFormat(ArgumentType.STRING, length_range=(1, 255)),))
 
-        if len(args) != 1:
-            await DiscordUtilities.send_error_message(ctx, 'Especifique o nome da reunião!', 'show frequency')
-            return
-
-        if not self.bot.get_custom_guild(ctx.guild.id).meeting_exist(args[0]):  # type: ignore
-            await DiscordUtilities.send_error_message(ctx, 'A reunião não foi encontrada!', 'show frequency')
+        if not await validator.validate_command():
             return
 
         meeting = self.bot.get_custom_guild(ctx.guild.id).get_meeting(args[0])  # type: ignore
@@ -538,8 +421,10 @@ class MeetingManagementCog(Cog):
 
         self.bot.log('MeetingManagementCog', f'<show_meetings> (Author: {ctx.author.name})')
 
-        if ctx.guild is None:
-            await DiscordUtilities.send_error_message(ctx, 'Este comando só pode ser usado em um servidor!', 'meeting')
+        validator = CustomValidator(self.bot, ctx, 'show meetings')
+        validator.require_conditions(guild=True)
+
+        if not await validator.validate_command():
             return
 
         meetings = self.bot.get_custom_guild(ctx.guild.id).get_meeting_names() # type: ignore
@@ -569,19 +454,16 @@ class MeetingManagementCog(Cog):
 
         self.bot.log('MeetingManagementCog', f'<show_members> (Author: {ctx.author.name})')
 
-        if ctx.guild is None:
-            await DiscordUtilities.send_error_message(ctx, 'Este comando só pode ser usado em um servidor!', 'meeting')
+        validator = CustomValidator(self.bot, ctx, 'show members', args=args)
+        validator.require_conditions(guild=True,
+                                     meeting=True)
+        validator.require_arg_format((ArgumentFormat(ArgumentType.STRING, length_range=(1, 255)),))
+
+        if not await validator.validate_command():
             return
 
-        if len(args) != 1:
-            await DiscordUtilities.send_error_message(ctx, 'Especifique o nome da reunião!', 'show members')
-            return
-
-        if not self.bot.get_custom_guild(ctx.guild.id).meeting_exist(args[0]):  # type: ignore
-            await DiscordUtilities.send_error_message(ctx, 'A reunião não foi encontrada!', 'show members')
-            return
-
-        members_id = self.bot.get_custom_guild(ctx.guild.id).get_meeting(args[0]).members_id  # type: ignore
+        meeting = self.bot.get_custom_guild(ctx.guild.id).get_meeting(args[0])  # type: ignore
+        members_id = meeting.members_id  # type: ignore
 
         if len(members_id) == 0:
             await DiscordUtilities.send_message(ctx,
@@ -609,19 +491,16 @@ class MeetingManagementCog(Cog):
 
         self.bot.log('MeetingManagementCog', f'<show_topics> (Author: {ctx.author.name})')
 
-        if ctx.guild is None:
-            await DiscordUtilities.send_error_message(ctx, 'Este comando só pode ser usado em um servidor!', 'meeting')
+        validator = CustomValidator(self.bot, ctx, 'show members', args=args)
+        validator.require_conditions(guild=True,
+                                     meeting=True)
+        validator.require_arg_format((ArgumentFormat(ArgumentType.STRING, length_range=(1, 255)),))
+
+        if not await validator.validate_command():
             return
 
-        if len(args) != 1:
-            await DiscordUtilities.send_error_message(ctx, 'Especifique o nome da reunião!', 'show topics')
-            return
-
-        if not self.bot.get_custom_guild(ctx.guild.id).meeting_exist(args[0]):  # type: ignore
-            await DiscordUtilities.send_error_message(ctx, 'A reunião não foi encontrada!', 'show topics')
-            return
-
-        topics = self.bot.get_custom_guild(ctx.guild.id).get_meeting(args[0]).get_topics()  # type: ignore
+        meeting = self.bot.get_custom_guild(ctx.guild.id).get_meeting(args[0])  # type: ignore
+        topics = meeting.get_topics()  # type: ignore
 
         if len(topics) == 0:
             await DiscordUtilities.send_message(ctx,
