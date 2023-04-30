@@ -41,9 +41,9 @@ class CustomBot(Bot):
                          help_command,
                          name,
                          join('system', 'internal_settings.json'),
-                         database_path,
                          intents,
                          version,
+                         database_path,
                          dev_env)
         self._voice_controller = VoiceController(self)
 
@@ -79,3 +79,7 @@ class CustomBot(Bot):
 
     def add_guild(self, guild_id: int) -> None:
         self.custom_guilds[str(guild_id)] = CustomGuild(guild_id, self)
+
+    def remove_guild(self, guild_id: int) -> None:
+        self.custom_guilds[str(guild_id)].remove()
+        del self.custom_guilds[str(guild_id)]

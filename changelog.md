@@ -128,3 +128,9 @@
 
 * Validation improved.
 * Settings for text and voice channels removed.
+
+---
+
+## v1.5.1
+
+* Bug fixes.

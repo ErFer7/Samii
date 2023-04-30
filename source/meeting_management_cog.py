@@ -292,7 +292,7 @@ class MeetingManagementCog(Cog):
         member = self.bot.get_guild(ctx.guild.id).get_member(member_id)  # type: ignore
 
         meeting = self.bot.get_custom_guild(ctx.guild.id).get_meeting(args[0])  # type: ignore
-        meeting.add_member(member_id, member.name)  # type: ignore
+        meeting.add_member(member_id)  # type: ignore
 
         await DiscordUtilities.send_message(ctx,
                                             'Membro adicionado',
@@ -320,7 +320,7 @@ class MeetingManagementCog(Cog):
 
         for member in ctx.guild.members:
             if not meeting.has_member(member.id) and member != self.bot.user and member.bot is False:
-                meeting.add_member(member.id, member.name)
+                meeting.add_member(member.id)
                 member_count += 1
 
         await DiscordUtilities.send_message(ctx,

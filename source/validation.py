@@ -42,17 +42,19 @@ class CustomValidator(Validator):
         if not await super().validate_command():
             return False
 
-        has_meeting = self._bot.get_custom_guild(self.ctx.guild.id).has_meeting(self.args[0])  # type: ignore
+        if self._require_meeting is not None:
+            has_meeting = self._bot.get_custom_guild(self.ctx.guild.id).has_meeting(self.args[0])  # type: ignore
 
-        if self._require_meeting is not None and self._require_meeting != has_meeting:
-            await DiscordUtilities.send_error_message(self.ctx, self.error_message, self.footer)
-            return False
+            if self._require_meeting != has_meeting:
+                await DiscordUtilities.send_error_message(self.ctx, self.error_message, self.footer)
+                return False
 
-        meeting = self.bot.get_custom_guild(self.ctx.guild.id).get_meeting(self.args[0])  # type: ignore
+        if self._require_topic is not None:
+            meeting = self.bot.get_custom_guild(self.ctx.guild.id).get_meeting(self.args[0])  # type: ignore
 
-        if self._require_topic is not None and self._require_topic != meeting.has_topic(self.args[1]):
-            await DiscordUtilities.send_error_message(self.ctx, self.error_message, self.footer)
-            return False
+            if self._require_topic != meeting.has_topic(self.args[1]):
+                await DiscordUtilities.send_error_message(self.ctx, self.error_message, self.footer)
+                return False
 
         member_id = 0
 
@@ -69,20 +71,21 @@ class CustomValidator(Validator):
                 await DiscordUtilities.send_error_message(self.ctx, self.error_message, self.footer)
                 return False
 
-        if self._require_member_in_meeting is not None and \
-           self._require_member_in_meeting != meeting.has_member(member_id):
-            await DiscordUtilities.send_error_message(self.ctx, self.error_message, self.footer)
-            return False
+        if self._require_member_in_meeting is not None:
+            meeting = self.bot.get_custom_guild(self.ctx.guild.id).get_meeting(self.args[0])  # type: ignore
 
-        if self._require_topics and meeting.topics_count == 0:
-            await DiscordUtilities.send_error_message(self.ctx, self.error_message, self.footer)
-            return False
+            if self._require_member_in_meeting != meeting.has_member(member_id):
+                await DiscordUtilities.send_error_message(self.ctx, self.error_message, self.footer)
+                return False
+
+        if self._require_topics:
+            meeting = self.bot.get_custom_guild(self.ctx.guild.id).get_meeting(self.args[0])  # type: ignore
+
+            if meeting.topic_count == 0:
+                await DiscordUtilities.send_error_message(self.ctx, self.error_message, self.footer)
+                return False
 
         if self._require_member_in_voice_channel and self.ctx.author.voice is None: # type: ignore
-            await DiscordUtilities.send_error_message(self.ctx, self.error_message, self.footer)
-            return False
-
-        if self._require_member_in_voice_channel and ctx.author.voice.guild.id != self.ctx.guild.id:  # type: ignore
             await DiscordUtilities.send_error_message(self.ctx, self.error_message, self.footer)
             return False
 

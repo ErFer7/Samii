@@ -7,9 +7,6 @@
 **++info**
 *Exibe informações técnicas*
 
-**++save**
-*Salva as configurações atuais*
-
 
 *Gerais:*
 
