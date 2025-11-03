@@ -1,5 +1,3 @@
-# -*- codsing: utf-8 -*-
-
 '''
 Inicia o bot no servidor.
 '''
@@ -12,11 +10,9 @@ USERNAME = ''
 with open('server_login.txt', 'r', encoding='utf-8') as file:
     USERNAME, HOSTNAME = file.read().splitlines()
 
-# create an SSH client
 ssh = paramiko.SSHClient()
 ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 
-# connect to the server
 ssh.connect(HOSTNAME, username=USERNAME)
 
 try:
@@ -26,5 +22,4 @@ try:
 except (buffered_pipe.PipeTimeout, TimeoutError):
     pass
 
-# close the SSH client
 ssh.close()
